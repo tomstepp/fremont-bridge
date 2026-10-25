@@ -1,0 +1,400 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f6f3ec;
+  --card: #fffdf8;
+  --text: #1f1c17;
+  --muted: #6b645a;
+  --line: #e2dccf;
+  /* Fremont Bridge is painted blue and orange. */
+  --up: #d9541e;
+  --down: #1f5f8b;
+  /* The answer's ends: clear to cross, and definitely blocked. */
+  --clear: #2e7d3a;
+  --blocked: #c62828;
+  --limited: #ebe3d1;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15171a;
+    --card: #1e2126;
+    --text: #ece8e1;
+    --muted: #a39c92;
+    --line: #2f333a;
+    --up: #f07a45;
+    --down: #6aa8d6;
+    --clear: #5cbf6a;
+    --blocked: #f05a5a;
+    --limited: #30353d;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2.5rem 1rem 3rem;
+}
+
+h1 {
+  font-size: clamp(1.25rem, 4vw, 1.6rem);
+  font-weight: 600;
+  margin: 0;
+  color: var(--muted);
+}
+
+.answer {
+  font-size: clamp(3rem, 14vw, 5.5rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0.4rem 0 0.2rem;
+  color: var(--down);
+}
+
+.answer[data-level="definitely-not"],
+.answer[data-level="nope"] {
+  color: var(--clear);
+}
+
+.answer[data-level="probably"],
+.answer[data-level="yep"] {
+  color: var(--up);
+}
+
+.answer[data-level="definitely"] {
+  color: var(--blocked);
+}
+
+.odds {
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.photo {
+  margin: 0 0 1.5rem;
+}
+
+.photo img,
+.cam {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  background: var(--line);
+}
+
+.photo img {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  filter: sepia(0.2);
+}
+
+figcaption,
+.note {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0.5rem 0 0;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem 1.25rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 1rem;
+  margin: 0 0 0.75rem;
+}
+
+.factors {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.factors li {
+  padding: 0.35rem 0 0.35rem 1.5rem;
+  position: relative;
+}
+
+.factors li::before {
+  content: "•";
+  position: absolute;
+  left: 0.3rem;
+  color: var(--muted);
+}
+
+.factors li[data-effect="up"]::before {
+  content: "▲";
+  left: 0;
+  color: var(--up);
+}
+
+.factors li[data-effect="down"]::before {
+  content: "▼";
+  left: 0;
+  color: var(--down);
+}
+
+.card-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  column-gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.card-head h2 {
+  margin: 0;
+}
+
+/* The camera keeps its 16:9 space while loading, with a message over it. */
+.cam-frame {
+  position: relative;
+  border-radius: 8px;
+  background: var(--line);
+}
+
+.cam-frame:not([data-state="ready"]) .cam {
+  aspect-ratio: 16 / 9;
+  visibility: hidden;
+}
+
+.cam-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.cam-frame[data-state="ready"] .cam-status {
+  display: none;
+}
+
+.cam-frame[data-state="loading"] .cam-status {
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cam-frame[data-state="loading"] .cam-status {
+    animation: none;
+  }
+}
+
+.cam-time {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ask {
+  margin: 1rem 0 0.5rem;
+  font-weight: 600;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+button {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--muted);
+}
+
+button[aria-pressed="true"] {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+}
+
+.stats dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.stats dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 2px;
+  height: 6rem;
+  margin-bottom: 1.2rem;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  border-radius: 3px 3px 0 0;
+}
+
+.col[data-limited] {
+  background: var(--limited);
+}
+
+.bar {
+  display: block;
+  min-height: 1px;
+  background: var(--down);
+  opacity: 0.55;
+  border-radius: 3px 3px 0 0;
+}
+
+.col[data-now] .bar {
+  opacity: 1;
+  background: var(--up);
+}
+
+.label {
+  height: 0;
+  overflow: visible;
+  font-size: 0.7rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Wide screens: the answer across the top, then the photo on the left and the
+   evidence on the right, so a laptop screen shows it all without scrolling. */
+@media (min-width: 960px) {
+  main {
+    max-width: 76rem;
+    padding: 1.5rem 2rem 0.75rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "hero hero"
+      "photo details"
+      "footer footer";
+    column-gap: 2rem;
+    align-items: start;
+  }
+
+  .hero {
+    grid-area: hero;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 1.5rem;
+  }
+
+  .hero h1 {
+    flex-basis: 100%;
+  }
+
+  .odds {
+    margin-bottom: 1rem;
+  }
+
+  .photo {
+    grid-area: photo;
+    position: sticky;
+    top: 2rem;
+  }
+
+  .details {
+    grid-area: details;
+  }
+
+  footer {
+    grid-area: footer;
+    margin-top: 1rem;
+  }
+}
+
+/* Wider still: the evidence splits in two, camera beside the guess and chart. */
+@media (min-width: 1200px) {
+  main {
+    max-width: 96rem;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 2fr);
+  }
+
+  .details {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "camera factors"
+      "camera chart";
+    align-items: start;
+    gap: 1rem;
+  }
+
+  .details .card {
+    margin-bottom: 0;
+  }
+
+  .camera-card {
+    grid-area: camera;
+  }
+
+  .factors-card {
+    grid-area: factors;
+  }
+
+  .chart-card {
+    grid-area: chart;
+  }
+}
+
+footer {
+  margin-top: 2rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+a {
+  color: inherit;
+}
