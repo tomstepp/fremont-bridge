@@ -23,7 +23,9 @@ function bridgePages(): Plugin {
           .replace(">Is the Fremont Bridge up right&nbsp;now?<", `>Is the ${b.name} Bridge up right&nbsp;now?<`)
           .replace(`Seattle's Fremont Bridge is open`, `Seattle's ${b.name} Bridge is open`)
           .replace(`content="Is the Fremont Bridge up right now?"`, `content="Is the ${b.name} Bridge up right now?"`)
-          .replace(`content="${SITE}/"`, `content="${SITE}${b.path}"`);
+          .replace(`content="${SITE}/"`, `content="${SITE}${b.path}"`)
+          .replace(`content="${SITE}/img/og.jpg"`, `content="${SITE}/img/${b.preview.file}"`)
+          .replace(/(property="og:image:alt" content=")[^"]*"/, `$1${b.preview.alt}"`);
         this.emitFile({ type: "asset", fileName: `${b.path.slice(1)}index.html`, source });
       }
       this.emitFile({ type: "asset", fileName: "404.html", source: html });

@@ -1,4 +1,16 @@
-import { BRIDGES, bridgeForPath, isOvernight, isRushHour, isRushMinute, type Camera, type Photo } from "./bridges";
+import {
+  BRIDGES,
+  bridgeForPath,
+  isOvernight,
+  isRushHour,
+  isRushMinute,
+  scheduleFactor,
+  weekdayRules,
+  type Camera,
+  type Photo,
+  type When,
+} from "./bridges";
+import { holidayOn } from "./holidays";
 import { guess, pct, type CameraReport, type Level, type Traffic } from "./guess";
 import { season, type Season } from "./season";
 import { cachedRecent, cachedYear, fetchRecent, fetchTraffic, fetchYear, type Recent, type YearShares } from "./sources";
@@ -14,7 +26,6 @@ import {
   seattleDow,
   seattleHour,
   seattleMinute,
-  seattleMonth,
 } from "./time";
 
 const TOMTOM_KEY = import.meta.env.VITE_TOMTOM_KEY as string | undefined;
@@ -59,7 +70,9 @@ function render() {
   const now = new Date();
   const dow = seattleDow(now);
   const hour = seattleHour(now);
-  const month = seattleMonth(now);
+  const minute = seattleMinute(now);
+  const day = seattleDate(now);
+  const when: When = { day, dow, holiday: holidayOn(day) };
   const camera = report && Date.now() - report.at < REPORT_MS ? report.what : undefined;
   const yearDow = year?.[dow];
   // Until today's part arrives, the year-round average stands in for the season.
@@ -70,6 +83,7 @@ function render() {
     yearRate: s && yearDow?.[hour],
     seasonal: Boolean(s),
     dayLabel: `${dayName(dow)}s`,
+    schedule: scheduleFactor(bridge, when, minute),
     traffic,
     camera,
   });
@@ -92,7 +106,10 @@ function render() {
   $("photo-credit").textContent = photo.credit;
 
   const factors = [...g.factors];
-  if (isRushMinute(bridge, dow, seattleMinute(now), month)) factors.splice(1, 0, { label: "It's weekday rush hour, so only large ships get an opening" });
+  if (isRushMinute(bridge, when, minute)) factors.splice(1, 0, { label: "Weekday rush hour: large ships only" });
+  // A holiday on a weekday lifts the closures (Columbus Day doesn't for SDOT's bridges).
+  if (when.holiday && dow >= 1 && dow <= 5 && !weekdayRules(bridge, when))
+    factors.splice(1, 0, { label: `${when.holiday}: no rush-hour closures` });
   $("factors").replaceChildren(
     ...factors.map((f) => {
       const li = document.createElement("li");
@@ -117,10 +134,11 @@ function render() {
   for (const b of document.querySelectorAll<HTMLButtonElement>("[data-report]"))
     b.setAttribute("aria-pressed", String(b.dataset.report === camera));
 
-  renderChart(shares, s?.stats, dow, hour, month);
+  renderChart(shares, s?.stats, when, hour);
 }
 
-function renderChart(shares: number[], stats: Season["stats"] | undefined, dow: number, hour: number, month: number) {
+function renderChart(shares: number[], stats: Season["stats"] | undefined, when: When, hour: number) {
+  const { dow } = when;
   const max = Math.max(...shares, 0.01);
   const peak = shares.indexOf(Math.max(...shares));
   const days = `${dayName(dow)}s`;
@@ -147,8 +165,10 @@ function renderChart(shares: number[], stats: Season["stats"] | undefined, dow: 
     }),
   );
 
-  const weekday = dow >= 1 && dow <= 5;
-  const shaded = [bridge.overnight && "overnight, appointment only", weekday && "rush hours, large ships only"].filter(Boolean);
+  const shaded = [
+    bridge.overnight && "overnight, appointment only",
+    weekdayRules(bridge, when) && "rush hours, large ships only",
+  ].filter(Boolean);
   const basis = !stats
     ? "Year-round average for now; recent weeks still loading."
     : !year
@@ -164,7 +184,7 @@ function renderChart(shares: number[], stats: Season["stats"] | undefined, dow: 
       const col = document.createElement("div");
       col.className = "col";
       if (h === hour) col.dataset.now = "";
-      if (isRushHour(bridge, dow, h, month) || isOvernight(bridge, h)) col.dataset.limited = "";
+      if (isRushHour(bridge, when, h) || isOvernight(bridge, h)) col.dataset.limited = "";
       col.title = `${hourLabel(h)}: up ${pct(s)} of the time`;
       const bar = document.createElement("span");
       bar.className = "bar";
@@ -190,6 +210,8 @@ async function refreshTraffic() {
     console.warn(err);
     traffic = undefined;
   }
+  // Credit TomTom only while its data is actually part of the guess.
+  $("traffic-credit").hidden = !traffic;
 }
 
 // Each picture loads off-page and only replaces the shown one once it has
@@ -294,7 +316,6 @@ async function tick() {
 
 async function start() {
   setupPage();
-  if (!TOMTOM_KEY) $("traffic-credit").hidden = true;
   for (const b of document.querySelectorAll<HTMLButtonElement>("[data-report]")) {
     b.addEventListener("click", () => {
       const what = b.dataset.report as CameraReport;

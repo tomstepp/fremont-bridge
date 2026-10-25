@@ -25,9 +25,12 @@ Each live signal multiplies the odds by a hand-tuned likelihood ratio; see
 Everything that differs per bridge is in [src/bridges.ts](src/bridges.ts):
 SDOT's log name, TomTom point, cameras, photos, and opening rules from
 [33 CFR 117.1051](https://www.ecfr.gov/current/title-33/part-117/section-117.1051)
-(Montlake's rush closures are longer and change with the season; it has no
-overnight notice rule). The build writes a copy of the page to each bridge's
-path with its own title and link-preview tags (see `vite.config.ts`).
+(Montlake's rush closures are longer and change with the season, it opens only
+on the hour and half hour 12:30–3:30 PM, and it has no overnight notice rule).
+Federal holidays lift the weekday rules, except Columbus Day for SDOT's three
+bridges ([src/holidays.ts](src/holidays.ts)). The build writes a copy of the page to each bridge's
+path with its own title, link-preview tags and preview image
+(`public/img/og-<bridge>.jpg`; see `vite.config.ts`).
 
 SDOT's University log went quiet in May 2026; averages divide by the days
 actually logged, and the page says when a bridge's log has stopped.

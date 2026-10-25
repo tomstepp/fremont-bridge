@@ -1,6 +1,6 @@
 // Everything that differs between bridges: SDOT's name for it, where it is,
 // its opening rules, cameras and photos. Each bridge gets a page at its path.
-import type { Level } from "./guess.ts";
+import type { Factor, Level } from "./guess.ts";
 
 export interface Camera {
   id: string;
@@ -23,31 +23,41 @@ export interface Bridge {
   path: string; // "/" or "/ballard/"
   logName: string; // entityname in SDOT's drawbridge log
   point: { lat: number; lng: number }; // the span itself, for TomTom
-  /** Weekday closures to boats under 1,000 tons, as [start, end) minutes after midnight. */
-  rush: (month: number) => [number, number][];
+  /** Weekday closures to boats under 1,000 tons on a YYYY-MM-DD day, as [start, end) minutes after midnight. */
+  rush: (day: string) => [number, number][];
+  /** Weekday windows when it opens only on the hour and half hour, as [start, end) minutes. */
+  halfHourly?: [number, number][];
+  /** Whether the weekday rules still apply on this federal holiday. */
+  rulesOnHoliday: (holiday: string) => boolean;
   /** Opens only with an hour's notice 11 PM–7 AM. */
   overnight: boolean;
   cameras: Camera[]; // first is the default
   photos: Record<Level, Photo[]>;
+  /** The link-preview image (1200×630) in public/img. */
+  preview: { file: string; alt: string };
 }
 
 const SDOT_CAMS = "https://www.seattle.gov/trafficcams/images/";
 const SMA = "Seattle Municipal Archives, CC BY 2.0.";
 
 // 33 CFR 117.1051(d): Ballard, Fremont and University close to most boats
-// 7–9 AM and 4–6 PM on weekdays and open overnight only on notice.
+// 7–9 AM and 4–6 PM on weekdays, except federal holidays other than Columbus
+// Day, and open overnight only on notice.
 const CANAL_RUSH = (): [number, number][] => [
   [7 * 60, 9 * 60],
   [16 * 60, 18 * 60],
 ];
+const CANAL_HOLIDAYS = (holiday: string) => holiday === "Columbus Day";
 
 const FREMONT: Bridge = {
   id: "fremont",
+  preview: { file: "og.jpg", alt: "The Fremont Bridge's blue span raised over the ship canal" },
   name: "Fremont",
   path: "/",
   logName: "Fremont",
   point: { lat: 47.6476, lng: -122.3497 },
   rush: CANAL_RUSH,
+  rulesOnHoliday: CANAL_HOLIDAYS,
   overnight: true,
   cameras: [
     {
@@ -168,11 +178,13 @@ const BALLARD_UP: Photo[] = [
 
 const BALLARD: Bridge = {
   id: "ballard",
+  preview: { file: "og-ballard.jpg", alt: "The Ballard Bridge's green spans raised, seen from a boat on the canal" },
   name: "Ballard",
   path: "/ballard/",
   logName: "Ballard",
   point: { lat: 47.6598, lng: -122.3762 },
   rush: CANAL_RUSH,
+  rulesOnHoliday: CANAL_HOLIDAYS,
   overnight: true,
   cameras: [
     {
@@ -225,11 +237,13 @@ const BALLARD: Bridge = {
 
 const UNIVERSITY: Bridge = {
   id: "university",
+  preview: { file: "og-university.jpg", alt: "The University Bridge raised with the gate down and a car waiting" },
   name: "University",
   path: "/university/",
   logName: "University",
   point: { lat: 47.6527, lng: -122.3204 },
   rush: CANAL_RUSH,
+  rulesOnHoliday: CANAL_HOLIDAYS,
   overnight: true,
   cameras: [
     {
@@ -295,13 +309,15 @@ const UNIVERSITY: Bridge = {
 
 const MONTLAKE: Bridge = {
   id: "montlake",
+  preview: { file: "og-montlake.jpg", alt: "A tug and a ship passing under the raised Montlake Bridge" },
   name: "Montlake",
   path: "/montlake/",
   logName: "Montlake",
   point: { lat: 47.6473, lng: -122.3046 },
-  // 33 CFR 117.1051(e): longer closures, and longer still outside summer.
-  rush: (month) =>
-    month >= 5 && month <= 8
+  // 33 CFR 117.1051(e): longer closures, longer still outside summer
+  // (April 30 to September 1), and none on any federal holiday.
+  rush: (day) =>
+    day.slice(5) >= "04-30" && day.slice(5) < "09-01"
       ? [
           [7 * 60, 9 * 60],
           [15 * 60 + 30, 18 * 60 + 30],
@@ -310,6 +326,12 @@ const MONTLAKE: Bridge = {
           [7 * 60, 10 * 60],
           [15 * 60 + 30, 19 * 60],
         ],
+  // The rule also lists 6–6:30 PM, but that's inside the closure in every season.
+  halfHourly: [
+    [12 * 60 + 30, 15 * 60 + 30],
+    [18 * 60, 18 * 60 + 30],
+  ],
+  rulesOnHoliday: () => false,
   overnight: false,
   cameras: [
     {
@@ -393,14 +415,49 @@ export function bridgeForPath(path: string): Bridge {
   return BRIDGES.find((b) => b.id === id) ?? FREMONT;
 }
 
-/** Whether boats under 1,000 tons wait at this weekday minute. dow 0 = Sunday. */
-export function isRushMinute(b: Bridge, dow: number, minute: number, month: number): boolean {
-  return dow >= 1 && dow <= 5 && b.rush(month).some(([s, e]) => minute >= s && minute < e);
+/** A moment's calendar, in Seattle. dow 0 = Sunday. */
+export interface When {
+  day: string; // YYYY-MM-DD
+  dow: number;
+  holiday?: string;
 }
 
+/** Whether the weekday rules (closures, half-hourly openings) are in force today. */
+export const weekdayRules = (b: Bridge, w: When) =>
+  w.dow >= 1 && w.dow <= 5 && !(w.holiday && !b.rulesOnHoliday(w.holiday));
+
+/** Whether boats under 1,000 tons wait at this minute. */
+export const isRushMinute = (b: Bridge, w: When, minute: number) =>
+  weekdayRules(b, w) && b.rush(w.day).some(([s, e]) => minute >= s && minute < e);
+
 /** Whether any part of this hour is a rush closure. */
-export const isRushHour = (b: Bridge, dow: number, hour: number, month: number) =>
-  dow >= 1 && dow <= 5 && b.rush(month).some(([s, e]) => s < (hour + 1) * 60 && e > hour * 60);
+export const isRushHour = (b: Bridge, w: When, hour: number) =>
+  weekdayRules(b, w) && b.rush(w.day).some(([s, e]) => s < (hour + 1) * 60 && e > hour * 60);
+
+/** Whether the bridge opens only on the hour and half hour at this minute. */
+export const isHalfHourly = (b: Bridge, w: When, minute: number) =>
+  weekdayRules(b, w) &&
+  !isRushMinute(b, w, minute) &&
+  (b.halfHourly ?? []).some(([s, e]) => minute >= s && minute < e);
+
+// An opening takes about five minutes, plus a few for the span to settle and
+// the logs to round; outside that stretch after :00 or :30 it's almost surely down.
+const AFTER_SLOT_MINUTES = 8;
+// Chosen so the half hour as a whole keeps about the same odds:
+// 8/30 × 3.5 + 22/30 × 0.15 ≈ 1.
+const IN_SLOT_RATIO = 3.5;
+const OUT_OF_SLOT_RATIO = 0.15;
+
+/** How a half-hourly schedule shifts the odds at this minute, if one is in force. */
+export function scheduleFactor(b: Bridge, w: When, minute: number): (Factor & { ratio: number }) | undefined {
+  if (!isHalfHourly(b, w, minute)) return undefined;
+  const sinceSlot = minute % 30;
+  if (sinceSlot < AFTER_SLOT_MINUTES)
+    return { label: "Opens only at :00 and :30 now; one just started", ratio: IN_SLOT_RATIO };
+  const next = minute + 30 - sinceSlot;
+  const time = `${Math.floor(next / 60) % 12 || 12}:${String(next % 60).padStart(2, "0")}`;
+  return { label: `Opens only at :00 and :30 now; next chance ${time}`, ratio: OUT_OF_SLOT_RATIO };
+}
 
 /** 11 PM to 7 AM, when SDOT's bridges open only by appointment. */
 export const isOvernight = (b: Bridge, hour: number) => b.overnight && (hour >= 23 || hour < 7);

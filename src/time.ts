@@ -8,7 +8,6 @@ const parts = (d: Date) =>
       timeZone: TZ,
       hour: "numeric",
       minute: "numeric",
-      month: "numeric",
       hourCycle: "h23",
       weekday: "short",
     })
@@ -21,8 +20,6 @@ export const seattleDate = (d = new Date()) => new Intl.DateTimeFormat("en-CA", 
 export const seattleHour = (d = new Date()) => Number(parts(d).hour);
 /** Minutes after midnight, Seattle time. */
 export const seattleMinute = (d = new Date()) => Number(parts(d).hour) * 60 + Number(parts(d).minute);
-/** 1 = January … 12 = December. */
-export const seattleMonth = (d = new Date()) => Number(parts(d).month);
 /** 0 = Sunday … 6 = Saturday, matching Socrata's date_extract_dow. */
 export const seattleDow = (d = new Date()) => DAYS.indexOf(parts(d).weekday);
 

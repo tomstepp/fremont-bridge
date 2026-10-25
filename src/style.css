@@ -155,8 +155,10 @@ h2 {
 }
 
 .factors li {
-  padding: 0.2rem 0 0.2rem 1.5rem;
+  padding: 0.15rem 0 0.15rem 1.5rem;
   position: relative;
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
 
 .factors li::before {

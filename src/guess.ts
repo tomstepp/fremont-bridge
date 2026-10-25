@@ -22,6 +22,8 @@ export interface Signals {
   dayLabel?: string;
   /** False when baseRate is the year-round average because the seasonal days haven't loaded. */
   seasonal?: boolean;
+  /** A fixed opening schedule in force right now, like Montlake's half-hourly one. */
+  schedule?: Factor & { ratio: number };
   traffic?: Traffic;
   camera?: CameraReport;
 }
@@ -99,6 +101,11 @@ export function guess(s: Signals): Guess {
     },
   ];
   let odds = base / (1 - base);
+
+  if (s.schedule) {
+    factors.push(s.schedule);
+    odds *= s.schedule.ratio;
+  }
 
   if (s.traffic) {
     const ratio = trafficRatio(s.traffic);
