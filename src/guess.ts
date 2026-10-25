@@ -42,12 +42,17 @@ export interface Guess {
 const MIN_BASE = 0.002;
 const MAX_BASE = 0.5;
 
+// A closure with traffic stopped: as strong as traffic evidence gets.
+const CLOSED_RATIO = 20;
+
 export function trafficRatio(t: Traffic): number {
   if (t.confidence < 0.5 || t.freeFlowSpeed <= 0) return 1;
-  if (t.closed) return 20;
+  const speed = t.currentSpeed / t.freeFlowSpeed;
+  // TomTom also flags long-running closures (construction on one direction,
+  // say) while traffic still moves, so a closure only counts if it's crawling.
+  if (t.closed && speed < 0.5) return CLOSED_RATIO;
   // TomTom smooths over a few minutes and openings last about five, so a crawl
   // is decent evidence but free-flowing traffic is only weak evidence of "down".
-  const speed = t.currentSpeed / t.freeFlowSpeed;
   if (speed < 0.25) return 6;
   if (speed < 0.5) return 2;
   if (speed > 0.8) return 0.5;
@@ -90,8 +95,8 @@ export function guess(s: Signals): Guess {
 
   if (s.traffic) {
     const ratio = trafficRatio(s.traffic);
-    const { currentSpeed, freeFlowSpeed, closed } = s.traffic;
-    const label = closed
+    const { currentSpeed, freeFlowSpeed } = s.traffic;
+    const label = ratio === CLOSED_RATIO
       ? "TomTom reports the bridge road closed"
       : `Traffic on the bridge: ${Math.round(currentSpeed)} mph (normally ${Math.round(freeFlowSpeed)})`;
     factors.push({ label, ratio });

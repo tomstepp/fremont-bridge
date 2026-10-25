@@ -4,7 +4,14 @@ const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const parts = (d: Date) =>
   Object.fromEntries(
-    new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour: "numeric", hourCycle: "h23", weekday: "short" })
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: TZ,
+      hour: "numeric",
+      minute: "numeric",
+      month: "numeric",
+      hourCycle: "h23",
+      weekday: "short",
+    })
       .formatToParts(d)
       .map((p) => [p.type, p.value]),
   );
@@ -12,6 +19,10 @@ const parts = (d: Date) =>
 /** Seattle's calendar date, YYYY-MM-DD. */
 export const seattleDate = (d = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d);
 export const seattleHour = (d = new Date()) => Number(parts(d).hour);
+/** Minutes after midnight, Seattle time. */
+export const seattleMinute = (d = new Date()) => Number(parts(d).hour) * 60 + Number(parts(d).minute);
+/** 1 = January … 12 = December. */
+export const seattleMonth = (d = new Date()) => Number(parts(d).month);
 /** 0 = Sunday … 6 = Saturday, matching Socrata's date_extract_dow. */
 export const seattleDow = (d = new Date()) => DAYS.indexOf(parts(d).weekday);
 
@@ -21,12 +32,6 @@ export function addDays(day: string, n: number): string {
   d.setUTCDate(d.getUTCDate() + n);
   return d.toISOString().slice(0, 10);
 }
-
-/** Weekday rush hours, when the ship canal bridges stay down for all but large ships. */
-export const isRushHour = (dow: number, hour: number) => dow >= 1 && dow <= 5 && [7, 8, 16, 17].includes(hour);
-
-/** 11 PM to 7 AM, when the bridge opens only by appointment. */
-export const isOvernight = (hour: number) => hour >= 23 || hour < 7;
 
 const longDay = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 export const dayName = (dow: number) => longDay[dow];

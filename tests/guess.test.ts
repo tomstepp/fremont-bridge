@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { answerFor, guess, trafficRatio, type Traffic } from "../src/guess";
-import { isRushHour } from "../src/time";
 
 const flowing: Traffic = { currentSpeed: 24, freeFlowSpeed: 25, closed: false, confidence: 1 };
 const stopped: Traffic = { currentSpeed: 2, freeFlowSpeed: 25, closed: false, confidence: 1 };
@@ -53,16 +52,11 @@ describe("trafficRatio", () => {
     expect(trafficRatio({ ...stopped, confidence: 0.2 })).toBe(1);
   });
 
-  it("treats a reported closure as strong evidence", () => {
-    expect(trafficRatio({ ...flowing, closed: true })).toBeGreaterThan(10);
+  it("treats a reported closure with stopped traffic as strong evidence", () => {
+    expect(trafficRatio({ ...stopped, closed: true })).toBeGreaterThan(10);
   });
-});
 
-describe("isRushHour", () => {
-  it("covers weekday 7–9 AM and 4–6 PM only", () => {
-    expect(isRushHour(2, 7)).toBe(true);
-    expect(isRushHour(2, 9)).toBe(false);
-    expect(isRushHour(5, 17)).toBe(true);
-    expect(isRushHour(6, 17)).toBe(false);
+  it("ignores a closure flag while traffic is still moving", () => {
+    expect(trafficRatio({ ...flowing, closed: true })).toBe(trafficRatio(flowing));
   });
 });
