@@ -1,19 +1,29 @@
 import {
-  BRIDGES,
+  OVERVIEW_PATH,
   bridgeForPath,
   isOvernight,
   isRushHour,
   isRushMinute,
-  scheduleFactor,
   weekdayRules,
   type Camera,
   type Photo,
   type When,
 } from "./bridges";
-import { holidayOn } from "./holidays";
-import { guess, pct, type CameraReport, type Level, type Traffic } from "./guess";
-import { season, type Season } from "./season";
-import { cachedRecent, cachedYear, fetchRecent, fetchTraffic, fetchYear, type Recent, type YearShares } from "./sources";
+import { pct, type CameraReport, type Level } from "./guess";
+import {
+  REFRESH_MS,
+  SLACK_MS,
+  TOMTOM_KEY,
+  TRAFFIC_MS,
+  estimate,
+  iconFor,
+  moment,
+  renderTabs,
+  type BridgeData,
+} from "./live";
+import { startOverview } from "./overview";
+import type { Season } from "./season";
+import { cachedRecent, cachedYear, fetchRecent, fetchTraffic, fetchYear } from "./sources";
 import {
   addDays,
   dayName,
@@ -23,19 +33,8 @@ import {
   hourLabel,
   hourName,
   seattleDate,
-  seattleDow,
-  seattleHour,
-  seattleMinute,
 } from "./time";
 
-const TOMTOM_KEY = import.meta.env.VITE_TOMTOM_KEY as string | undefined;
-const REFRESH_MS = 60_000;
-// TomTom's flow data only changes every few minutes, and the free tier caps
-// daily lookups, so traffic refreshes less often than the rest of the page.
-const TRAFFIC_MS = 5 * 60_000;
-// Timers drift a little; without slack the fifth minute's tick can land a few
-// milliseconds short of five minutes and push traffic to the sixth.
-const SLACK_MS = 5_000;
 // A camera report goes stale about as fast as an opening ends.
 const REPORT_MS = 5 * 60_000;
 // How long to wait for the first camera picture before saying it's not responding.
@@ -52,41 +51,20 @@ const photoFor = Object.fromEntries(
   Object.entries(bridge.photos).map(([level, list]) => [level, list[Math.floor(Math.random() * list.length)]]),
 ) as Record<Level, Photo>;
 
-// Tab icon: who gets across right now, cars or boats. Same markup as the
-// starting icon in index.html.
-const iconFor = (up: boolean) =>
-  `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.88em' x='50' text-anchor='middle' font-size='100'>${up ? "⛵" : "🚗"}</text></svg>`;
-
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 // SDOT's log arrives in two parts (see sources.ts); the page shows what it has.
-let year: YearShares | undefined;
-let recent: Recent | undefined;
-let traffic: Traffic | undefined;
+const data: BridgeData = {};
 let report: { what: CameraReport; at: number } | undefined;
 
 function render() {
-  if (!year && !recent) return;
-  const now = new Date();
-  const dow = seattleDow(now);
-  const hour = seattleHour(now);
-  const minute = seattleMinute(now);
-  const day = seattleDate(now);
-  const when: When = { day, dow, holiday: holidayOn(day) };
+  const m = moment();
+  const { now, when, hour, minute } = m;
+  const { dow } = when;
   const camera = report && Date.now() - report.at < REPORT_MS ? report.what : undefined;
-  const yearDow = year?.[dow];
-  // Until today's part arrives, the year-round average stands in for the season.
-  const s: Season | undefined = recent && season(recent.seasonOpenings, recent.seasonDays, yearDow);
-  const shares = s?.shares ?? yearDow!;
-  const g = guess({
-    baseRate: shares[hour],
-    yearRate: s && yearDow?.[hour],
-    seasonal: Boolean(s),
-    dayLabel: `${dayName(dow)}s`,
-    schedule: scheduleFactor(bridge, when, minute),
-    traffic,
-    camera,
-  });
+  const e = estimate(bridge, data, m, camera);
+  if (!e) return;
+  const { guess: g, shares, season: s } = e;
 
   // The answer is a live region; only touch it on a real change so screen
   // readers don't re-announce it every minute.
@@ -121,9 +99,9 @@ function render() {
 
   // Every bridge opens most days, so a week with nothing logged means SDOT's
   // sensor is down (University's went quiet in 2026), not a quiet bridge.
-  const last = recent?.lastOpening;
+  const last = data.recent?.lastOpening;
   const stale = !last || last.at.slice(0, 10) < addDays(seattleDate(now), -STALE_LOG_DAYS);
-  $("last").textContent = !recent
+  $("last").textContent = !data.recent
     ? LOADING_LOG
     : !last
     ? "SDOT hasn't logged any openings for this bridge."
@@ -171,7 +149,7 @@ function renderChart(shares: number[], stats: Season["stats"] | undefined, when:
   ].filter(Boolean);
   const basis = !stats
     ? "Year-round average for now; recent weeks still loading."
-    : !year
+    : !data.year
       ? `${9 - missing} days${missing ? ` (${missing} not logged)` : ""}; year-round average still loading.`
       : `${9 - missing} days${missing ? ` (${missing} not logged)` : ""} blended with the year-round average.`;
   $("chart-note").textContent = basis + (shaded.length ? ` Shaded: ${shaded.join("; ")}.` : "");
@@ -205,13 +183,13 @@ async function refreshTraffic() {
   // Stamped before the request, so a failure also waits five minutes to retry.
   trafficAt = Date.now();
   try {
-    traffic = await fetchTraffic(bridge, TOMTOM_KEY);
+    data.traffic = await fetchTraffic(bridge, TOMTOM_KEY);
   } catch (err) {
     console.warn(err);
-    traffic = undefined;
+    data.traffic = undefined;
   }
   // Credit TomTom only while its data is actually part of the guess.
-  $("traffic-credit").hidden = !traffic;
+  $("traffic-credit").hidden = !data.traffic;
 }
 
 // Each picture loads off-page and only replaces the shown one once it has
@@ -289,15 +267,7 @@ function setupCameras() {
 function setupPage() {
   $("question").textContent = `Is the ${bridge.name} Bridge up right now?`;
   document.title = `Is the ${bridge.name} Bridge up?`;
-  $("bridges").replaceChildren(
-    ...BRIDGES.map((b) => {
-      const a = document.createElement("a");
-      a.href = b.path;
-      a.textContent = b.name;
-      if (b === bridge) a.setAttribute("aria-current", "page");
-      return a;
-    }),
-  );
+  renderTabs($("bridges"), bridge.path);
 }
 
 function setCamState(state: "loading" | "ready" | "error", message: string) {
@@ -334,17 +304,17 @@ async function start() {
   // of SDOT's log, and traffic, as it arrives.
   const today = seattleDate();
   const cached = cachedYear(bridge, today);
-  year = cached?.shares;
-  recent = cachedRecent(bridge, today);
+  data.year = cached?.shares;
+  data.recent = cachedRecent(bridge, today);
   render();
   const loads = [
-    cached?.fresh ? undefined : fetchYear(bridge, today).then((v) => (year = v)),
-    recent ? undefined : fetchRecent(bridge, today).then((v) => (recent = v)),
+    cached?.fresh ? undefined : fetchYear(bridge, today).then((v) => (data.year = v)),
+    data.recent ? undefined : fetchRecent(bridge, today).then((v) => (data.recent = v)),
     refreshTraffic(),
   ].map((p) => p?.then(render));
   const results = await Promise.allSettled(loads);
   for (const r of results) if (r.status === "rejected") console.error(r.reason);
-  if (!year && !recent) {
+  if (!data.year && !data.recent) {
     $("answer").textContent = "No idea.";
     $("odds").textContent = "Couldn't reach SDOT's bridge log. Try again in a bit.";
     $("last").textContent = "";
@@ -353,4 +323,5 @@ async function start() {
   document.addEventListener("visibilitychange", tick);
 }
 
-start();
+if (location.pathname.startsWith(OVERVIEW_PATH)) startOverview();
+else start();

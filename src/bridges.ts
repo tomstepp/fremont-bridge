@@ -409,6 +409,9 @@ const MONTLAKE: Bridge = {
 
 export const BRIDGES: Bridge[] = [FREMONT, BALLARD, UNIVERSITY, MONTLAKE];
 
+/** The page with every bridge at a glance. */
+export const OVERVIEW_PATH = "/all/";
+
 /** The bridge for a URL path; anything unknown is Fremont. */
 export function bridgeForPath(path: string): Bridge {
   const id = path.split("/").filter(Boolean)[0];

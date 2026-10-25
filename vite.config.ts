@@ -1,5 +1,5 @@
 import { defineConfig, type Plugin } from "vite";
-import { BRIDGES } from "./src/bridges.ts";
+import { BRIDGES, OVERVIEW_PATH } from "./src/bridges.ts";
 
 const SITE = "https://seattle-bridges.com";
 
@@ -16,18 +16,42 @@ function bridgePages(): Plugin {
       const page = bundle["index.html"];
       if (page?.type !== "asset") return;
       const html = String(page.source);
+      // index.html is Fremont's page; the others swap in their own wording.
+      const pageFor = (p: { path: string; question: string; about: string; image: string; alt: string }) =>
+        html
+          .replace("<title>Is the Fremont Bridge up?</title>", `<title>${p.question}?</title>`)
+          .replace(">Is the Fremont Bridge up right&nbsp;now?<", `>${p.question} right&nbsp;now?<`)
+          .replace("Seattle's Fremont Bridge is open", p.about)
+          .replace(`content="Is the Fremont Bridge up right now?"`, `content="${p.question} right now?"`)
+          .replace(`content="${SITE}/"`, `content="${SITE}${p.path}"`)
+          .replace(`content="${SITE}/img/og.jpg"`, `content="${SITE}/img/${p.image}"`)
+          .replace(/(property="og:image:alt" content=")[^"]*"/, `$1${p.alt}"`);
+      const emit = (path: string, source: string) =>
+        this.emitFile({ type: "asset", fileName: `${path.slice(1)}index.html`, source });
+
       for (const b of BRIDGES) {
         if (b.path === "/") continue;
-        const source = html
-          .replace("<title>Is the Fremont Bridge up?</title>", `<title>Is the ${b.name} Bridge up?</title>`)
-          .replace(">Is the Fremont Bridge up right&nbsp;now?<", `>Is the ${b.name} Bridge up right&nbsp;now?<`)
-          .replace(`Seattle's Fremont Bridge is open`, `Seattle's ${b.name} Bridge is open`)
-          .replace(`content="Is the Fremont Bridge up right now?"`, `content="Is the ${b.name} Bridge up right now?"`)
-          .replace(`content="${SITE}/"`, `content="${SITE}${b.path}"`)
-          .replace(`content="${SITE}/img/og.jpg"`, `content="${SITE}/img/${b.preview.file}"`)
-          .replace(/(property="og:image:alt" content=")[^"]*"/, `$1${b.preview.alt}"`);
-        this.emitFile({ type: "asset", fileName: `${b.path.slice(1)}index.html`, source });
+        emit(
+          b.path,
+          pageFor({
+            path: b.path,
+            question: `Is the ${b.name} Bridge up`,
+            about: `Seattle's ${b.name} Bridge is open`,
+            image: b.preview.file,
+            alt: b.preview.alt,
+          }),
+        );
       }
+      emit(
+        OVERVIEW_PATH,
+        pageFor({
+          path: OVERVIEW_PATH,
+          question: "Are Seattle's drawbridges up",
+          about: "Seattle's ship canal drawbridges are open",
+          image: BRIDGES[0].preview.file,
+          alt: BRIDGES[0].preview.alt,
+        }),
+      );
       this.emitFile({ type: "asset", fileName: "404.html", source: html });
     },
   };
