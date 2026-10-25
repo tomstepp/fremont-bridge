@@ -5,6 +5,12 @@ import { dayName, formatFloating, formatStamp, formatTime, hourLabel, hourName, 
 
 const TOMTOM_KEY = import.meta.env.VITE_TOMTOM_KEY as string | undefined;
 const REFRESH_MS = 60_000;
+// TomTom's flow data only changes every few minutes, and the free tier caps
+// daily lookups, so traffic refreshes less often than the rest of the page.
+const TRAFFIC_MS = 5 * 60_000;
+// Timers drift a little; without slack the fifth minute's tick can land a few
+// milliseconds short of five minutes and push traffic to the sixth.
+const SLACK_MS = 5_000;
 // A camera report goes stale about as fast as an opening ends.
 const REPORT_MS = 5 * 60_000;
 // How long to wait for the first camera picture before saying it's not responding.
@@ -112,8 +118,10 @@ const photoFor = Object.fromEntries(
   Object.entries(PHOTOS).map(([level, list]) => [level, list[Math.floor(Math.random() * list.length)]]),
 ) as Record<Level, Photo>;
 
+// Tab icon: who gets across right now, cars or boats. Same markup as the
+// starting icon in index.html.
 const iconFor = (up: boolean) =>
-  `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${up ? "🚢" : "🌉"}</text></svg>`;
+  `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.88em' x='50' text-anchor='middle' font-size='100'>${up ? "⛵" : "🚗"}</text></svg>`;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -224,8 +232,12 @@ function renderChart({ shares, stats }: Season, dow: number, hour: number) {
   );
 }
 
+let trafficAt = -Infinity;
+
 async function refreshTraffic() {
-  if (!TOMTOM_KEY) return;
+  if (!TOMTOM_KEY || Date.now() - trafficAt < TRAFFIC_MS - SLACK_MS) return;
+  // Stamped before the request, so a failure also waits five minutes to retry.
+  trafficAt = Date.now();
   try {
     traffic = await fetchTraffic(TOMTOM_KEY);
   } catch (err) {
@@ -237,8 +249,10 @@ async function refreshTraffic() {
 // Each picture loads off-page and only replaces the shown one once it has
 // arrived, so a slow or failed fetch never blanks a picture that's already up.
 let camShown = false;
+let cameraAt = -Infinity;
 
 function refreshCamera() {
+  cameraAt = Date.now();
   const next = new Image();
   const timer = setTimeout(() => {
     if (!camShown) setCamState("error", "The live view isn't responding. Trying again in a minute.");
@@ -262,8 +276,11 @@ function setCamState(state: "loading" | "ready" | "error", message: string) {
   $("cam-status").textContent = message;
 }
 
+// Background tabs refresh nothing; coming back catches up on whatever is out
+// of date (the camera after a minute, traffic after five).
 async function tick() {
-  refreshCamera();
+  if (document.hidden) return;
+  if (Date.now() - cameraAt >= REFRESH_MS - SLACK_MS) refreshCamera();
   await refreshTraffic();
   render();
 }
@@ -279,8 +296,6 @@ async function start() {
     });
   }
 
-  // SDOT's server hides the picture's own timestamp from other sites, so the
-  // best the page can say is when it loaded it.
   // SDOT's camera server is sometimes slow; start it only once the page has
   // finished loading so it can't hold up the browser's loading indicator.
   if (document.readyState === "complete") refreshCamera();
@@ -295,6 +310,7 @@ async function start() {
   }
   render();
   setInterval(tick, REFRESH_MS);
+  document.addEventListener("visibilitychange", tick);
 }
 
 start();
