@@ -10,8 +10,32 @@ const LOG = "https://data.seattle.gov/resource/gm8h-9449.json";
 const BRIDGE = "Fremont";
 export const FREMONT = { lat: 47.6476, lng: -122.3497 };
 
-// SDOT traffic camera at Fremont Ave N & N 34th St, looking south at the bridge.
-export const CAMERA_URL = "https://www.seattle.gov/trafficcams/images/Fremont_N_34_NS.jpg";
+// SDOT traffic cameras at either end of the bridge. The south one looks
+// straight across the deck, so a raised span is in the shot.
+export interface Camera {
+  id: string;
+  label: string;
+  url: string;
+  caption: string;
+  alt: string;
+}
+
+export const CAMERAS: Camera[] = [
+  {
+    id: "south",
+    label: "South end",
+    url: "https://www.seattle.gov/trafficcams/images/4_N_Dexter_2.jpg",
+    caption: "4th Ave N & Dexter Ave N, looking north across the deck.",
+    alt: "SDOT traffic camera at 4th Ave N and Dexter Ave N, looking north across the Fremont Bridge deck",
+  },
+  {
+    id: "north",
+    label: "North end",
+    url: "https://www.seattle.gov/trafficcams/images/Fremont_N_34_NS.jpg",
+    caption: "Fremont Ave N & N 34th St, looking south toward the bridge.",
+    alt: "SDOT traffic camera at Fremont Ave N and N 34th St, looking south toward the bridge",
+  },
+];
 
 // A year of history, in whole weeks so every weekday appears the same number of times.
 const WEEKS = 52;
@@ -86,9 +110,12 @@ async function queryHistory(today: string): Promise<History> {
   };
 }
 
+// In dev, through the Vite proxy (see vite.config.ts), since TomTom rejects localhost.
+const TOMTOM = import.meta.env.DEV ? "/tomtom" : "https://api.tomtom.com";
+
 export async function fetchTraffic(key: string): Promise<Traffic> {
   const url =
-    "https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/18/json" +
+    `${TOMTOM}/traffic/services/4/flowSegmentData/absolute/18/json` +
     `?point=${FREMONT.lat},${FREMONT.lng}&unit=mph&key=${encodeURIComponent(key)}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`TomTom: HTTP ${res.status}`);

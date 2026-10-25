@@ -46,10 +46,13 @@
             <span id="cam-time" class="cam-time" title="When this page loaded the picture"></span>
           </div>
           <div id="cam-frame" class="cam-frame" data-state="loading">
-            <img id="cam" class="cam" alt="SDOT traffic camera at Fremont Ave N and N 34th St, looking south toward the bridge" width="1280" height="720" />
+            <img id="cam" class="cam" alt="" width="1280" height="720" />
             <p id="cam-status" class="cam-status" role="status">Loading live view…</p>
           </div>
-          <p class="note">SDOT camera at Fremont Ave N &amp; N 34th St, looking south toward the bridge. It updates every few minutes.</p>
+          <div class="cam-pick">
+            <div id="cam-buttons" class="toggle" role="group" aria-label="Camera"></div>
+            <p id="cam-caption" class="note"></p>
+          </div>
           <p class="ask">What do you see?</p>
           <div class="buttons">
             <button type="button" data-report="waiting">Traffic stopped, nothing coming off the bridge</button>
@@ -69,7 +72,7 @@
         Data: <a href="https://data.seattle.gov/Transportation/SDOT-Drawbridge-Status/gm8h-9449">SDOT Drawbridge Status</a>,
         SDOT traffic cameras<span id="traffic-credit">, and TomTom traffic</span>.
         Photos via Wikimedia Commons, credited in captions.
-        A guess for fun; don't plan a ship around it. ·
+        A guess for fun; don’t plan your trip around it. ·
         <a href="https://tomstepp.com">tomstepp.com</a>
       </footer>
     </main>

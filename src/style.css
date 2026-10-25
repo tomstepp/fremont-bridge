@@ -129,7 +129,7 @@ h2 {
 }
 
 .factors li {
-  padding: 0.35rem 0 0.35rem 1.5rem;
+  padding: 0.2rem 0 0.2rem 1.5rem;
   position: relative;
 }
 
@@ -209,6 +209,29 @@ h2 {
   }
 }
 
+.cam-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.cam-pick .note {
+  margin: 0;
+  flex: 1 1 12rem;
+}
+
+.toggle {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.toggle button {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.7rem;
+}
+
 .cam-time {
   font-size: 0.85rem;
   color: var(--muted);
@@ -271,7 +294,7 @@ button[aria-pressed="true"] {
   display: grid;
   grid-template-columns: repeat(24, 1fr);
   gap: 2px;
-  height: 6rem;
+  height: 5.25rem;
   margin-bottom: 1.2rem;
 }
 
@@ -312,7 +335,7 @@ button[aria-pressed="true"] {
 @media (min-width: 960px) {
   main {
     max-width: 76rem;
-    padding: 1.5rem 2rem 0.75rem;
+    padding: 1.5rem 2rem 0.5rem;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas:
@@ -349,9 +372,9 @@ button[aria-pressed="true"] {
     grid-area: details;
   }
 
-  footer {
+  main > footer {
     grid-area: footer;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
   }
 }
 

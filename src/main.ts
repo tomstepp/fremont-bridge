@@ -1,6 +1,6 @@
 import { guess, pct, type CameraReport, type Level, type Traffic } from "./guess";
 import { season, type Season } from "./season";
-import { CAMERA_URL, fetchHistory, fetchTraffic, type History } from "./sources";
+import { CAMERAS, fetchHistory, fetchTraffic, type Camera, type History } from "./sources";
 import { dayName, formatFloating, formatStamp, formatTime, hourLabel, hourName, isOvernight, isRushHour, seattleDate, seattleDow, seattleHour } from "./time";
 
 const TOMTOM_KEY = import.meta.env.VITE_TOMTOM_KEY as string | undefined;
@@ -169,7 +169,7 @@ function render() {
 
   const last = history.lastOpening;
   $("last").textContent = last
-    ? `Last logged opening: ${formatFloating(last.at)}, ${last.minutes} min (SDOT posts daily).`
+    ? `Last logged opening: ${formatFloating(last.at)}, ${last.minutes} min.`
     : "";
 
   for (const b of document.querySelectorAll<HTMLButtonElement>("[data-report]"))
@@ -251,14 +251,26 @@ async function refreshTraffic() {
 let camShown = false;
 let cameraAt = -Infinity;
 
+// The viewer's pick of camera, remembered between visits when storage allows.
+const CAMERA_KEY = "fremont-camera";
+let camera = CAMERAS[0];
+try {
+  camera = CAMERAS.find((c) => c.id === localStorage.getItem(CAMERA_KEY)) ?? camera;
+} catch {
+  // Storage blocked; use the default.
+}
+
 function refreshCamera() {
   cameraAt = Date.now();
+  const cam = camera;
   const next = new Image();
   const timer = setTimeout(() => {
-    if (!camShown) setCamState("error", "The live view isn't responding. Trying again in a minute.");
+    if (cam === camera && !camShown) setCamState("error", "The live view isn't responding. Trying again in a minute.");
   }, CAMERA_TIMEOUT_MS);
   next.onload = () => {
     clearTimeout(timer);
+    // The viewer may have switched cameras while this one was loading.
+    if (cam !== camera) return;
     $<HTMLImageElement>("cam").src = next.src;
     $("cam-time").textContent = formatStamp(new Date());
     camShown = true;
@@ -266,9 +278,42 @@ function refreshCamera() {
   };
   next.onerror = () => {
     clearTimeout(timer);
-    if (!camShown) setCamState("error", "The live view isn't responding. Trying again in a minute.");
+    if (cam === camera && !camShown) setCamState("error", "The live view isn't responding. Trying again in a minute.");
   };
-  next.src = `${CAMERA_URL}?t=${Date.now()}`;
+  next.src = `${cam.url}?t=${Date.now()}`;
+}
+
+function showCamera(next: Camera) {
+  camera = next;
+  $<HTMLImageElement>("cam").alt = next.alt;
+  $("cam-caption").textContent = next.caption;
+  for (const b of document.querySelectorAll<HTMLButtonElement>("#cam-buttons button"))
+    b.setAttribute("aria-pressed", String(b.dataset.camera === next.id));
+}
+
+function setupCameras() {
+  $("cam-buttons").replaceChildren(
+    ...CAMERAS.map((c) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.dataset.camera = c.id;
+      b.textContent = c.label;
+      b.addEventListener("click", () => {
+        if (c === camera) return;
+        try {
+          localStorage.setItem(CAMERA_KEY, c.id);
+        } catch {
+          // Not worth failing over.
+        }
+        showCamera(c);
+        camShown = false;
+        setCamState("loading", "Loading live view…");
+        refreshCamera();
+      });
+      return b;
+    }),
+  );
+  showCamera(camera);
 }
 
 function setCamState(state: "loading" | "ready" | "error", message: string) {
@@ -296,6 +341,7 @@ async function start() {
     });
   }
 
+  setupCameras();
   // SDOT's camera server is sometimes slow; start it only once the page has
   // finished loading so it can't hold up the browser's loading indicator.
   if (document.readyState === "complete") refreshCamera();
