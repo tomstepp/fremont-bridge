@@ -2,8 +2,8 @@
 
 A small, silly site that guesses whether Seattle's ship canal drawbridges are
 raised for boats at this moment: Fremont at seattle-bridges.com, and Ballard,
-University and Montlake at `/ballard/`, `/university/` and `/montlake/`, and
-all four at a glance at `/all/` ([src/overview.ts](src/overview.ts)).
+University and Montlake at `/ballard`, `/university` and `/montlake`, and
+all four at a glance at `/all` ([src/overview.ts](src/overview.ts)).
 fremontbridge.com redirects here (from the separate `fremontbridge-redirect`
 repo).
 

@@ -25,7 +25,8 @@ const at = (h: number, m = 0) => h * 60 + m;
 describe("bridgeForPath", () => {
   it("maps paths to bridges, with Fremont at the root and as the fallback", () => {
     expect(bridgeForPath("/").id).toBe("fremont");
-    expect(bridgeForPath("/ballard/").id).toBe("ballard");
+    expect(bridgeForPath("/ballard").id).toBe("ballard");
+    expect(bridgeForPath("/ballard/").id).toBe("ballard"); // older links had a trailing slash
     expect(bridgeForPath("/university").id).toBe("university");
     expect(bridgeForPath("/nowhere/").id).toBe("fremont");
   });

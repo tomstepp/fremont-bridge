@@ -3,7 +3,7 @@ import { BRIDGES, OVERVIEW_PATH } from "./src/bridges.ts";
 
 const SITE = "https://seattle-bridges.com";
 
-// Each bridge's page is the same app at its own path (/ballard/, …), so the
+// Each bridge's page is the same app at its own path (/ballard, …), so the
 // build copies index.html there with that bridge's title and link-preview
 // tags; crawlers don't run scripts. 404.html sends unknown paths to Fremont.
 function bridgePages(): Plugin {
@@ -26,8 +26,9 @@ function bridgePages(): Plugin {
           .replace(`content="${SITE}/"`, `content="${SITE}${p.path}"`)
           .replace(`content="${SITE}/img/og.jpg"`, `content="${SITE}/img/${p.image}"`)
           .replace(/(property="og:image:alt" content=")[^"]*"/, `$1${p.alt}"`);
+      // ballard.html is served at /ballard: GitHub Pages maps extensionless paths to .html.
       const emit = (path: string, source: string) =>
-        this.emitFile({ type: "asset", fileName: `${path.slice(1)}index.html`, source });
+        this.emitFile({ type: "asset", fileName: `${path.slice(1)}.html`, source });
 
       for (const b of BRIDGES) {
         if (b.path === "/") continue;

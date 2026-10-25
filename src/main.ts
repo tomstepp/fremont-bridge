@@ -43,7 +43,12 @@ const CAMERA_TIMEOUT_MS = 15_000;
 const STALE_LOG_DAYS = 7;
 const LOADING_LOG = "Loading SDOT's opening log…";
 
-// The page's bridge comes from its path: /ballard/, /university/, … or / for Fremont.
+// Pages live at /ballard, /all, … with no trailing slash. Older /ballard/-style
+// links reach this same page through 404.html; tidy the address to match.
+if (location.pathname.length > 1 && location.pathname.endsWith("/"))
+  history.replaceState(null, "", location.pathname.replace(/\/+$/, "") + location.search + location.hash);
+
+// The page's bridge comes from its path: /ballard, /university, … or / for Fremont.
 const bridge = bridgeForPath(location.pathname);
 
 // Picked once per visit, so the photo only changes when the answer does.
@@ -323,5 +328,5 @@ async function start() {
   document.addEventListener("visibilitychange", tick);
 }
 
-if (location.pathname.startsWith(OVERVIEW_PATH)) startOverview();
+if (location.pathname === OVERVIEW_PATH) startOverview();
 else start();

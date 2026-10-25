@@ -1,4 +1,4 @@
-// The overview at /all/: one row per bridge with its answer, its chance and a
+// The overview at /all: one row per bridge with its answer, its chance and a
 // live camera picture, each linking to that bridge's page. Answers come from
 // the same estimate as the bridge pages, so the two always agree.
 import { BRIDGES, OVERVIEW_PATH, type Bridge } from "./bridges";
@@ -34,6 +34,7 @@ function buildRows(): Row[] {
     const li = document.createElement("li");
     li.className = "ov-row";
 
+    // The name is the card's link; CSS stretches it over the whole card.
     const name = document.createElement("a");
     name.className = "ov-name";
     name.href = bridge.path;
@@ -48,11 +49,13 @@ function buildRows(): Row[] {
     chance.className = "ov-chance";
     answer.append(word, chance);
 
-    // The picture links to the bridge's page too; the name already says which bridge.
-    const camLink = document.createElement("a");
-    camLink.className = "ov-cam";
-    camLink.href = bridge.path;
-    camLink.tabIndex = -1;
+    const more = document.createElement("p");
+    more.className = "ov-more";
+    more.innerHTML = '<span class="on-touch">Tap</span><span class="on-pointer">Click</span> for more ›';
+    more.setAttribute("aria-hidden", "true");
+
+    const cam = document.createElement("span");
+    cam.className = "ov-cam";
     const frame = document.createElement("span");
     frame.className = "ov-frame";
     frame.dataset.state = "loading";
@@ -61,9 +64,9 @@ function buildRows(): Row[] {
     img.width = 1280;
     img.height = 720;
     frame.append(img);
-    camLink.append(frame);
+    cam.append(frame);
 
-    li.append(name, answer, camLink);
+    li.append(name, answer, more, cam);
     $("overview-list").append(li);
     return { bridge, data: {}, word, chance, frame, img, camShown: false };
   });

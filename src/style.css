@@ -241,7 +241,7 @@ h2 {
   }
 }
 
-/* The /all/ overview: one card per bridge in place of the photo and cards. */
+/* The /all overview: one card per bridge in place of the photo and cards. */
 .overview-mode .photo,
 .overview-mode .details {
   display: none;
@@ -256,11 +256,13 @@ h2 {
 }
 
 .ov-row {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 9rem);
   grid-template-areas:
     "name cam"
-    "answer cam";
+    "answer cam"
+    "more cam";
   align-items: center;
   column-gap: 1rem;
   padding: 0.75rem;
@@ -272,14 +274,60 @@ h2 {
 .ov-name {
   grid-area: name;
   align-self: end;
+  color: inherit;
   font-size: 1.1rem;
   font-weight: 700;
   text-decoration: none;
 }
 
-.ov-name::after {
-  content: " ›";
+/* The whole card is the link: the name's ::before covers it. */
+.ov-name::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1; /* above the camera picture, so it's clickable too */
+  border-radius: 12px;
+}
+
+.ov-name:focus-visible {
+  outline: none;
+}
+
+.ov-row:hover,
+.ov-row:focus-within {
+  border-color: var(--muted);
+}
+
+.ov-row:focus-within {
+  outline: 2px solid var(--muted);
+  outline-offset: 2px;
+}
+
+.ov-more {
+  grid-area: more;
+  align-self: start;
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
   color: var(--muted);
+}
+
+.ov-row:hover .ov-more {
+  color: var(--text);
+}
+
+/* "Tap" on touchscreens, "Click" with a mouse. */
+.on-pointer {
+  display: none;
+}
+
+@media (hover: hover) {
+  .on-pointer {
+    display: inline;
+  }
+
+  .on-touch {
+    display: none;
+  }
 }
 
 .ov-answer {
@@ -374,7 +422,7 @@ h2 {
 }
 
 .ask {
-  margin: 1rem 0 0.5rem;
+  margin: 0.6rem 0 0.4rem;
   font-weight: 600;
 }
 
@@ -470,9 +518,12 @@ button[aria-pressed="true"] {
 @media (min-width: 960px) {
   main {
     max-width: 76rem;
-    padding: 1.5rem 2rem 0.5rem;
+    /* At least a full window, so the footer sits at the bottom of a tall one. */
+    min-height: 100vh;
+    padding: 1rem 2rem 0.4rem;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
     grid-template-areas:
       "hero hero"
       "photo details"
@@ -513,6 +564,10 @@ button[aria-pressed="true"] {
     grid-area: details;
   }
 
+  .disclaimer {
+    margin-top: 0.5rem;
+  }
+
   main > footer {
     grid-area: footer;
     margin-top: 0.5rem;
@@ -523,7 +578,13 @@ button[aria-pressed="true"] {
 /* Wide screens: the overview's cards two across, so all four fit at once. */
 @media (min-width: 960px) {
   .overview-mode main {
-    display: block;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .overview-mode main > footer {
+    margin-top: auto;
+    padding-top: 0.5rem;
   }
 
   .overview-list {
@@ -579,6 +640,15 @@ footer {
   margin-top: 2rem;
   font-size: 0.8rem;
   color: var(--muted);
+}
+
+footer p {
+  margin: 0;
+}
+
+/* The page's sign-off, set apart from the credits. */
+.disclaimer {
+  margin-top: 1rem;
 }
 
 a {

@@ -33,10 +33,10 @@
         <nav id="bridges" class="bridge-tabs" aria-label="Bridges"></nav>
       </div>
 
-      <!-- The /all/ page: every bridge at a glance. Hidden on the bridge pages. -->
+      <!-- The /all page: every bridge at a glance. Hidden on the bridge pages. -->
       <section id="overview" class="overview" hidden>
         <ol id="overview-list" class="overview-list"></ol>
-        <p class="note">Each bridge's best guess and its live SDOT camera, which refreshes every minute. Tap a bridge for how it guessed.</p>
+        <p class="note">Each bridge's best guess and its live SDOT camera, which refreshes every minute.</p>
       </section>
 
       <figure class="photo">
@@ -66,7 +66,7 @@
           </div>
           <p class="ask">What do you see?</p>
           <div class="buttons">
-            <button type="button" data-report="waiting">Traffic stopped, nothing coming off the bridge</button>
+            <button type="button" data-report="waiting">Traffic stopped</button>
             <button type="button" data-report="moving">Cars crossing</button>
           </div>
         </section>
@@ -80,10 +80,11 @@
       </div>
 
       <footer>
-        Data: <a href="https://data.seattle.gov/Transportation/SDOT-Drawbridge-Status/gm8h-9449">SDOT Drawbridge Status</a>,
-        SDOT traffic cameras<span id="traffic-credit" hidden>, and TomTom traffic</span>.
-        Photos via Wikimedia Commons, credited in captions.
-        A guess for fun; don’t plan your trip around it.
+        <p>
+          Data: SDOT Drawbridge Status, SDOT traffic cameras<span id="traffic-credit" hidden>, and TomTom traffic</span>.
+          Photos via Wikimedia Commons, credited in captions.
+        </p>
+        <p class="disclaimer">A guess for fun; don’t plan your trip around it.</p>
       </footer>
     </main>
     <script type="module" src="/src/main.ts"></script>

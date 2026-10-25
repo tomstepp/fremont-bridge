@@ -20,7 +20,7 @@ export interface Photo {
 export interface Bridge {
   id: string;
   name: string; // "Fremont", as in "the Fremont Bridge"
-  path: string; // "/" or "/ballard/"
+  path: string; // "/" or "/ballard"
   logName: string; // entityname in SDOT's drawbridge log
   point: { lat: number; lng: number }; // the span itself, for TomTom
   /** Weekday closures to boats under 1,000 tons on a YYYY-MM-DD day, as [start, end) minutes after midnight. */
@@ -180,7 +180,7 @@ const BALLARD: Bridge = {
   id: "ballard",
   preview: { file: "og-ballard.jpg", alt: "The Ballard Bridge's green spans raised, seen from a boat on the canal" },
   name: "Ballard",
-  path: "/ballard/",
+  path: "/ballard",
   logName: "Ballard",
   point: { lat: 47.6598, lng: -122.3762 },
   rush: CANAL_RUSH,
@@ -239,7 +239,7 @@ const UNIVERSITY: Bridge = {
   id: "university",
   preview: { file: "og-university.jpg", alt: "The University Bridge raised with the gate down and a car waiting" },
   name: "University",
-  path: "/university/",
+  path: "/university",
   logName: "University",
   point: { lat: 47.6527, lng: -122.3204 },
   rush: CANAL_RUSH,
@@ -311,7 +311,7 @@ const MONTLAKE: Bridge = {
   id: "montlake",
   preview: { file: "og-montlake.jpg", alt: "A tug and a ship passing under the raised Montlake Bridge" },
   name: "Montlake",
-  path: "/montlake/",
+  path: "/montlake",
   logName: "Montlake",
   point: { lat: 47.6473, lng: -122.3046 },
   // 33 CFR 117.1051(e): longer closures, longer still outside summer
@@ -410,7 +410,7 @@ const MONTLAKE: Bridge = {
 export const BRIDGES: Bridge[] = [FREMONT, BALLARD, UNIVERSITY, MONTLAKE];
 
 /** The page with every bridge at a glance. */
-export const OVERVIEW_PATH = "/all/";
+export const OVERVIEW_PATH = "/all";
 
 /** The bridge for a URL path; anything unknown is Fremont. */
 export function bridgeForPath(path: string): Bridge {
