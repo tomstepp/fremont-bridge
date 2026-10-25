@@ -1,7 +1,7 @@
 import { defineConfig, type Plugin } from "vite";
 import { BRIDGES } from "./src/bridges.ts";
 
-const SITE = "https://fremontbridge.com";
+const SITE = "https://seattle-bridges.com";
 
 // Each bridge's page is the same app at its own path (/ballard/, …), so the
 // build copies index.html there with that bridge's title and link-preview

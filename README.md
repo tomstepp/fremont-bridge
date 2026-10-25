@@ -1,9 +1,12 @@
 # Is the Fremont Bridge up right now?
 
 A small, silly site that guesses whether Seattle's ship canal drawbridges are
-raised for boats at this moment: Fremont at fremontbridge.com, and Ballard,
-University and Montlake at `/ballard/`, `/university/` and `/montlake/`. There's no live feed for that, so it combines what
-there is:
+raised for boats at this moment: Fremont at seattle-bridges.com, and Ballard,
+University and Montlake at `/ballard/`, `/university/` and `/montlake/`.
+fremontbridge.com redirects here (from the separate `fremontbridge-redirect`
+repo).
+
+There's no live feed for that, so it combines what there is:
 
 1. **History**: SDOT's [drawbridge opening log](https://data.seattle.gov/Transportation/SDOT-Drawbridge-Status/gm8h-9449)
    gives how often the bridge is up at this hour on the same weekday, this time
@@ -51,7 +54,7 @@ requests as if from the live site (see `vite.config.ts`).
 
 ## Deploy
 
-Pushes to `main` publish to fremontbridge.com via GitHub Pages; one-time
+Pushes to `main` publish to seattle-bridges.com via GitHub Pages; one-time
 setup is in [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Photos
