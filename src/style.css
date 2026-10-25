@@ -45,6 +45,9 @@ main {
   max-width: 40rem;
   margin: 0 auto;
   padding: 2.5rem 1rem 3rem;
+  /* One column: the answer, then the live evidence, with the old photo last. */
+  display: flex;
+  flex-direction: column;
 }
 
 h1 {
@@ -110,7 +113,8 @@ h1 {
 }
 
 .photo {
-  margin: 0 0 1.5rem;
+  order: 1;
+  margin: 1rem 0 0;
 }
 
 .photo img,
@@ -399,6 +403,7 @@ button[aria-pressed="true"] {
     grid-area: photo;
     position: sticky;
     top: 2rem;
+    margin: 0;
   }
 
   .details {
@@ -446,6 +451,7 @@ button[aria-pressed="true"] {
 }
 
 footer {
+  order: 2;
   margin-top: 2rem;
   font-size: 0.8rem;
   color: var(--muted);
