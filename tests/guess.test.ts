@@ -22,6 +22,11 @@ describe("guess", () => {
     expect(g.factors).toHaveLength(3);
   });
 
+  it("says definitely up when a viewer sees the gates down, even at a quiet hour", () => {
+    expect(guess({ baseRate: 0.07, camera: "gates" }).level).toBe("definitely");
+    expect(guess({ baseRate: 0.01, traffic: flowing, camera: "gates" }).up).toBe(true);
+  });
+
   it("trusts a viewer who sees cars crossing", () => {
     expect(guess({ baseRate: 0.2, traffic: stopped, camera: "moving" }).up).toBe(false);
   });

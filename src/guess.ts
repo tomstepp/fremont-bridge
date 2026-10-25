@@ -4,7 +4,7 @@
 // tested; the ratios are hand-tuned guesses, not fitted.
 
 /** What the viewer saw on the traffic camera. */
-export type CameraReport = "waiting" | "moving";
+export type CameraReport = "gates" | "waiting" | "moving";
 
 export interface Traffic {
   currentSpeed: number; // mph
@@ -63,10 +63,19 @@ export function trafficRatio(t: Traffic): number {
   return 1;
 }
 
-// The camera looks across N 34th St toward the bridge's north end.
+// How much each thing a viewer reports seeing on the camera shifts the odds.
 export const CAMERA_RATIO: Record<CameraReport, number> = {
+  // Gates across the road mean an opening; nothing else lowers them. Strong
+  // enough to say "Definitely up!" at any daytime hour.
+  gates: 2000,
   waiting: 15, // traffic stopped and nothing coming off the bridge
   moving: 0.05, // cars are crossing, so it's down
+};
+
+const CAMERA_LABEL: Record<CameraReport, string> = {
+  gates: "You saw the gates down",
+  waiting: "You saw traffic stopped at the bridge",
+  moving: "You saw cars crossing",
 };
 
 /** How sure the answer is; the page colors the answer by it. */
@@ -119,7 +128,7 @@ export function guess(s: Signals): Guess {
 
   if (s.camera) {
     const ratio = CAMERA_RATIO[s.camera];
-    factors.push({ label: s.camera === "waiting" ? "You saw traffic stopped at the bridge" : "You saw cars crossing", ratio });
+    factors.push({ label: CAMERA_LABEL[s.camera], ratio });
     odds *= ratio;
   }
 
