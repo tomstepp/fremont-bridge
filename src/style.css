@@ -564,10 +564,6 @@ button[aria-pressed="true"] {
     grid-area: details;
   }
 
-  .disclaimer {
-    margin-top: 0.5rem;
-  }
-
   main > footer {
     grid-area: footer;
     margin-top: 0.5rem;
@@ -646,9 +642,14 @@ footer p {
   margin: 0;
 }
 
-/* The page's sign-off, set apart from the credits. */
+/* The page's sign-off, in the answer's blue, above the fine print. */
 .disclaimer {
-  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--down);
+}
+
+.credits {
+  margin-top: 0.25rem;
 }
 
 a {
