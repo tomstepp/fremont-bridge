@@ -35,7 +35,7 @@ Bike Now key only allows bike.tomstepp.com: either add this site's domain (and
 
 ## Deploy
 
-Pushes to `main` publish to fremont.tomstepp.com via GitHub Pages; one-time
+Pushes to `main` publish to fremontbridge.com via GitHub Pages; one-time
 setup is in [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Photos

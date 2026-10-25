@@ -1,4 +1,4 @@
-# Builds the site and publishes it to GitHub Pages (fremont.tomstepp.com) on
+# Builds the site and publishes it to GitHub Pages (fremontbridge.com) on
 # every push to main. The page fetches all its data itself, so there's no
 # scheduled data refresh. The TomTom key comes from a repository secret; see
 # docs/DEPLOY.md.

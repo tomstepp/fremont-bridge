@@ -1,4 +1,4 @@
-# Deploying to fremont.tomstepp.com (GitHub Pages)
+# Deploying to fremontbridge.com (GitHub Pages)
 
 The site is static: the page fetches SDOT's bridge log, the traffic camera and
 TomTom traffic itself. GitHub Actions builds it and publishes it to GitHub Pages
@@ -26,23 +26,46 @@ Settings → Pages → Build and deployment → Source: **GitHub Actions**.
 
 Then push (or Actions → Deploy → **Run workflow**).
 
-## 4. fremont.tomstepp.com (you)
+## 4. fremontbridge.com (you)
 
-1. Namecheap → Domain List → tomstepp.com → Manage → **Advanced DNS** → Add New Record:
+A bare domain can't be a CNAME, so it points at GitHub's Pages servers by IP,
+and `www` points at your GitHub Pages host. GitHub then redirects
+www.fremontbridge.com to fremontbridge.com.
 
-   | Type | Host | Value | TTL |
-   |---|---|---|---|
-   | CNAME | `fremont` | `tomstepp.github.io.` | Automatic |
+1. At the registrar's DNS settings for fremontbridge.com (Namecheap: Domain
+   List → fremontbridge.com → Manage → **Advanced DNS**), first delete any
+   parking records it added (often a `URL Redirect` or a `CNAME` for `www`
+   pointing at a parking page). Then add:
 
-2. GitHub: Settings → Pages → Custom domain: `fremont.tomstepp.com` → Save.
-   GitHub checks the DNS (minutes, occasionally an hour), then issues HTTPS.
+   | Type | Host | Value |
+   |---|---|---|
+   | A | `@` | `185.199.108.153` |
+   | A | `@` | `185.199.109.153` |
+   | A | `@` | `185.199.110.153` |
+   | A | `@` | `185.199.111.153` |
+   | AAAA | `@` | `2606:50c0:8000::153` |
+   | AAAA | `@` | `2606:50c0:8001::153` |
+   | AAAA | `@` | `2606:50c0:8002::153` |
+   | AAAA | `@` | `2606:50c0:8003::153` |
+   | CNAME | `www` | `tomstepp.github.io.` |
+
+   TTL: Automatic. The AAAA records (IPv6) are optional but recommended.
+
+2. GitHub: Settings → Pages → Custom domain: `fremontbridge.com` → Save.
+   GitHub checks the DNS (minutes, occasionally a few hours for a new
+   domain), then issues HTTPS.
 3. Tick **Enforce HTTPS** once it's offered.
+
+Recommended: verify the domain in your GitHub account (your profile Settings →
+Pages → **Add a domain**) so no one else can point a GitHub Pages site at it.
+GitHub gives you a TXT record to add, the same way as above.
 
 ## 5. Allow the domain on the TomTom key (you)
 
 developer.tomtom.com → Dashboard → Keys → edit the key → allowed domains: add
-`fremont.tomstepp.com` (and `localhost` to test traffic with `npm run dev`).
-The key ships inside the page, so keep the domain list tight.
+`fremontbridge.com` and `www.fremontbridge.com` (and `localhost` to test
+traffic with `npm run dev`). The key ships inside the page, so keep the domain
+list tight.
 
 ## Day to day
 
