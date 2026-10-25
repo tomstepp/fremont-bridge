@@ -2,7 +2,9 @@
 
 A small, silly site that guesses whether Seattle's ship canal drawbridges are
 raised for boats at this moment: Fremont at seattle-bridges.com, and Ballard,
-University and Montlake at `/ballard`, `/university` and `/montlake`, and
+University, Montlake, South Park, First Avenue South and Spokane Street at
+`/ballard`, `/university`, `/montlake`, `/south-park`, `/first-ave` and
+`/spokane-st`, and
 all four at a glance at `/all` ([src/overview.ts](src/overview.ts)).
 fremontbridge.com redirects here (from the separate `fremontbridge-redirect`
 repo).
@@ -32,11 +34,16 @@ SDOT's log name, TomTom point, cameras, photos, and opening rules from
 (Montlake's rush closures are longer and change with the season, it opens only
 on the hour and half hour 12:30–3:30 PM, and it has no overnight notice rule).
 Federal holidays lift the weekday rules, except Columbus Day for SDOT's three
-bridges ([src/holidays.ts](src/holidays.ts)). The build writes a copy of the page to each bridge's
+bridges ([src/holidays.ts](src/holidays.ts)). The Duwamish River bridges follow
+[33 CFR 117.1041](https://www.ecfr.gov/current/title-33/part-117/section-117.1041):
+South Park and First Avenue South close at their own rush hours, South Park
+needs 12 hours' notice overnight, and the Spokane Street swing bridge has no
+closures. The build writes a copy of the page to each bridge's
 path with its own title, link-preview tags and preview image
 (`public/img/og-<bridge>.jpg`; see `vite.config.ts`).
 
-SDOT's University log went quiet in May 2026; averages divide by the days
+SDOT's University log went quiet in May 2026 and Spokane Street's in December
+2025; averages divide by the days
 actually logged, and the page says when a bridge's log has stopped.
 
 ## Develop
@@ -121,3 +128,40 @@ the page caption shows it. `og.jpg` (the link preview image) is cropped from
 | `probably-2.jpg` | [Workers with Montlake Bridge gears, 1953](https://commons.wikimedia.org/wiki/File:Seattle_-_Workers_with_Montlake_Bridge_gears,_1953.jpg), Seattle Municipal Archives | CC BY 2.0 |
 | `yep.jpg` | [Ship passing under the Montlake Bridge, 1926 (SEATTLE 3795)](https://commons.wikimedia.org/wiki/File:Ship_passing_under_the_Montlake_Bridge,_1926_(SEATTLE_3795).jpg), Linkletter Studio | Public domain |
 | `definitely.jpg` | [Montlake Bridge, 1934](https://commons.wikimedia.org/wiki/File:Montlake_Bridge,_1934_(50185716036).jpg), Seattle Municipal Archives | CC BY 2.0 |
+
+### South Park
+
+| File | Photo | License |
+|---|---|---|
+| `definitely.jpg` | [BARGE TRAFFIC ON THE DUWAMISH RIVER. THE RIVER FLOWS INTO PUGET SOUND AT SEATTLE - NARA - 552262](https://commons.wikimedia.org/wiki/File:BARGE_TRAFFIC_ON_THE_DUWAMISH_RIVER._THE_RIVER_FLOWS_INTO_PUGET_SOUND_AT_SEATTLE_-_NARA_-_552262.jpg), Doug Wilson | Public domain |
+| `up-2010.jpg` | [South Park Bridge Seattle - aerial view in 2010 with old bascule leaves raised, awaiting replacement](https://commons.wikimedia.org/wiki/File:South_Park_Bridge_Seattle_-_aerial_view_in_2010_with_old_bascule_leaves_raised,_awaiting_replacement.jpg), brewbooks | CC BY-SA 2.0 |
+| `probably-not.jpg` | [South Park Bridge, Seattle](https://commons.wikimedia.org/wiki/File:South_Park_Bridge,_Seattle.JPG), Happybluemo | CC BY-SA 4.0 |
+| `nope.jpg` | [New South Park Bridge from west in 2022 - Seattle, WA](https://commons.wikimedia.org/wiki/File:New_South_Park_Bridge_from_west_in_2022_-_Seattle,_WA.jpg), Steve Morgan | CC BY-SA 4.0 |
+| `definitely-not.jpg` | [Driving across the new South Park Bridge in Seattle (2022)](https://commons.wikimedia.org/wiki/File:Driving_across_the_new_South_Park_Bridge_in_Seattle_(2022).jpg), Steve Morgan | CC BY-SA 4.0 |
+| `maybe.jpg` | [North tower of new South Park Bridge in Seattle (2022)](https://commons.wikimedia.org/wiki/File:North_tower_of_new_South_Park_Bridge_in_Seattle_(2022).jpg), Steve Morgan | CC BY-SA 4.0 |
+
+### First Avenue South
+
+| File | Photo | License |
+|---|---|---|
+| `up-2009.jpg` | [Duwamish Water Taxi](https://commons.wikimedia.org/wiki/File:Duwamish_Water_Taxi_(3853623248).jpg), U.S. EPA | Public domain |
+| `definitely-not.jpg` | [1st Ave S. Bridge opening with Mayor Clinton and Governor Langlie (53786)](https://commons.wikimedia.org/wiki/File:1st_Ave_S._Bridge_opening_with_Mayor_Clinton_and_Governor_Langlie_(53786).jpg), Unknown photographer | Public domain |
+| `nope.jpg` | [1st Ave S Bridge looking toward Seattle](https://commons.wikimedia.org/wiki/File:Seattle_-_1st_Ave_S_Bridge_looking_toward_Seattle.jpg), Joe Mabel | CC BY-SA 3.0 |
+| `maybe.jpg` | [First Avenue Bridge from South River Street 01](https://commons.wikimedia.org/wiki/File:Seattle_-_First_Avenue_Bridge_from_South_River_Street_01.jpg), Joe Mabel | CC BY-SA 4.0 |
+| `probably.jpg` | [First Avenue Bridge from South Park Bridge](https://commons.wikimedia.org/wiki/File:Seattle_-_First_Avenue_Bridge_from_South_Park_Bridge.jpg), Joe Mabel | CC BY-SA 3.0 |
+| `probably-not.jpg` | [Duwamish River - 1st Ave S Bridge aerial 01](https://commons.wikimedia.org/wiki/File:Duwamish_River_-_1st_Ave_S_Bridge_aerial_01.jpg), Joe Mabel | CC BY-SA 3.0 |
+
+### Spokane Street
+
+| File | Photo | License |
+|---|---|---|
+| `definitely.jpg` | [Spokane Street Bridge - view from east approach of swing span turned (2009)](https://commons.wikimedia.org/wiki/File:Spokane_Street_Bridge_-_view_from_east_approach_of_swing_span_turned_(2009).jpg), Adam Foster | CC BY 2.0 |
+| `maybe.jpg` | [West Seattle pivotal bridge](https://commons.wikimedia.org/wiki/File:West_Seattle_pivotal_bridge_(33681713860).jpg), Robert Ashworth | CC BY 2.0 |
+| `yep.jpg` | [West Seattle pivotal bridge](https://commons.wikimedia.org/wiki/File:West_Seattle_pivotal_bridge_(33936749251).jpg), Robert Ashworth | CC BY 2.0 |
+| `probably.jpg` | [Spokane Street Bridge - looking down at base of west swing span while turned](https://commons.wikimedia.org/wiki/File:Spokane_Street_Bridge_-_looking_down_at_base_of_west_swing_span_while_turned.jpg), Robert Ashworth | CC BY 2.0 |
+| `probably-not.jpg` | [Spokane Street Bridge from east, from West Seattle Bridge Trail (2003)](https://commons.wikimedia.org/wiki/File:Spokane_Street_Bridge_from_east,_from_West_Seattle_Bridge_Trail_(2003).jpg), Robert Ashworth | CC BY 2.0 |
+| `definitely-not.jpg` | [Two trucks on West Spokane Street swing bridge, Seattle, June 29, 1918 (MOHAI 3516)](https://commons.wikimedia.org/wiki/File:Two_trucks_on_West_Spokane_Street_swing_bridge,_Seattle,_June_29,_1918_(MOHAI_3516).jpg), Unknown | Public domain |
+| `probably-2.jpg` | [West Spokane Street Bridge drawbridge gears, Seattle, August 22, 1924 (MOHAI 9079)](https://commons.wikimedia.org/wiki/File:West_Spokane_Street_Bridge_drawbridge_gears,_Seattle,_August_22,_1924_(MOHAI_9079).jpg), James Patrick Lee | Public domain |
+| `nope.jpg` | [Streetcar on Spokane Street bascule bridge, 1928](https://commons.wikimedia.org/wiki/File:Seattle_-_Streetcar_on_Spokane_Street_bascule_bridge,_1928.jpg), Seattle Municipal Archives | CC BY 2.0 |
+
+Some photos of Spokane Street show the earlier bascule and swing bridges at the same crossing; their captions say so.

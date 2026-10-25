@@ -38,7 +38,7 @@ function buildRows(): Row[] {
     const name = document.createElement("a");
     name.className = "ov-name";
     name.href = bridge.path;
-    name.textContent = bridge.name;
+    name.textContent = bridge.short ?? bridge.name;
 
     const answer = document.createElement("p");
     answer.className = "ov-answer";

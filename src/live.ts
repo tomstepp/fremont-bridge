@@ -70,7 +70,7 @@ export const iconFor = (up: boolean) =>
 /** The bridge tabs plus the overview, marking the current page. */
 export function renderTabs(nav: HTMLElement, currentPath: string) {
   nav.replaceChildren(
-    ...[...BRIDGES.map((b) => ({ path: b.path, name: b.name })), { path: OVERVIEW_PATH, name: "All" }].map((t) => {
+    ...[...BRIDGES.map((b) => ({ path: b.path, name: b.short ?? b.name })), { path: OVERVIEW_PATH, name: "All" }].map((t) => {
       const a = document.createElement("a");
       a.href = t.path;
       a.textContent = t.name;

@@ -50,6 +50,32 @@ describe("rush closures", () => {
   });
 });
 
+describe("Duwamish bridges", () => {
+  const southPark = byId("south-park");
+  const firstAve = byId("first-ave");
+  const spokane = byId("spokane-st");
+
+  it("have their own rush closures", () => {
+    expect(isRushMinute(southPark, OCT_TUE, at(6, 45))).toBe(true);
+    expect(isRushMinute(southPark, OCT_TUE, at(8, 45))).toBe(false);
+    expect(isRushMinute(firstAve, OCT_TUE, at(6, 15))).toBe(true);
+    expect(isRushMinute(firstAve, OCT_TUE, at(15, 15))).toBe(true);
+    expect(isRushMinute(firstAve, OCT_TUE, at(18, 15))).toBe(false);
+  });
+
+  it("leave the Spokane Street swing bridge without closures but with overnight notice", () => {
+    expect(isRushHour(spokane, OCT_TUE, 8)).toBe(false);
+    expect(isOvernight(spokane, 2)).toBe(true);
+    expect(isOvernight(firstAve, 2)).toBe(false);
+  });
+
+  it("are found by their paths", () => {
+    expect(bridgeForPath("/south-park").id).toBe("south-park");
+    expect(bridgeForPath("/first-ave").id).toBe("first-ave");
+    expect(bridgeForPath("/spokane-st").id).toBe("spokane-st");
+  });
+});
+
 describe("federal holidays", () => {
   it("knows the observed dates", () => {
     expect(holidayOn("2026-11-26")).toBe("Thanksgiving");

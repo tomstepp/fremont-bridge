@@ -20,6 +20,8 @@ export interface Photo {
 export interface Bridge {
   id: string;
   name: string; // "Fremont", as in "the Fremont Bridge"
+  /** A shorter label for tabs and overview cards, when the name is long. */
+  short?: string;
   path: string; // "/" or "/ballard"
   logName: string; // entityname in SDOT's drawbridge log
   point: { lat: number; lng: number }; // the span itself, for TomTom
@@ -407,7 +409,249 @@ const MONTLAKE: Bridge = {
   },
 };
 
-export const BRIDGES: Bridge[] = [FREMONT, BALLARD, UNIVERSITY, MONTLAKE];
+
+// The Duwamish River bridges, 33 CFR 117.1041. South Park and First Avenue
+// South close at rush hour like the canal bridges, on their own hours; South
+// Park needs 12 hours' notice overnight. The Spokane Street swing bridge has
+// no closures, and SDOT opens it overnight by appointment like its others.
+const SOUTH_PARK: Bridge = {
+  id: "south-park",
+  preview: { file: "og-south-park.jpg", alt: "Barges passing the old South Park Bridge with its leaves raised" },
+  name: "South Park",
+  path: "/south-park",
+  logName: "South Park",
+  point: { lat: 47.5292, lng: -122.3141 },
+  rush: () => [
+    [6 * 60 + 30, 8 * 60 + 30],
+    [15 * 60 + 30, 17 * 60 + 30],
+  ],
+  rulesOnHoliday: CANAL_HOLIDAYS,
+  overnight: true,
+  cameras: [
+    {
+      id: "south",
+      label: "South end",
+      url: `${SDOT_CAMS}14_S_Cloverdale.jpg`,
+      caption: "14th Ave S & S Cloverdale St, looking north toward the bridge.",
+      alt: "SDOT traffic camera at 14th Ave S and S Cloverdale St, looking north toward the South Park Bridge",
+    },
+  ],
+  photos: {
+    "definitely-not": [
+      {
+        file: "south-park/definitely-not.jpg",
+        alt: "Driving across the new South Park Bridge toward its bridgetender towers, 2022",
+        credit: "Driving across, 2022. Steve Morgan, CC BY-SA 4.0.",
+      },
+    ],
+    nope: [
+      {
+        file: "south-park/nope.jpg",
+        alt: "The new South Park Bridge's red spans down over the Duwamish River, 2022",
+        credit: "The new bridge from the west, 2022. Steve Morgan, CC BY-SA 4.0.",
+      },
+    ],
+    "probably-not": [
+      {
+        file: "south-park/probably-not.jpg",
+        alt: "The lowered South Park Bridge reflected in calm water, 2015",
+        credit: "The bridge on a calm day, 2015. Happybluemo, CC BY-SA 4.0.",
+      },
+    ],
+    maybe: [
+      {
+        file: "south-park/maybe.jpg",
+        alt: "The South Park Bridge's north bridgetender tower, 2022",
+        credit: "The north tower, 2022. Steve Morgan, CC BY-SA 4.0.",
+      },
+    ],
+    probably: [
+      {
+        file: "south-park/up-2010.jpg",
+        alt: "Aerial view of the old South Park Bridge with both leaves raised, 2010",
+        credit: "The old bridge's leaves raised, 2010. brewbooks, CC BY-SA 2.0.",
+      },
+    ],
+    yep: [
+      {
+        file: "south-park/up-2010.jpg",
+        alt: "Aerial view of the old South Park Bridge with both leaves raised, 2010",
+        credit: "The old bridge's leaves raised, 2010. brewbooks, CC BY-SA 2.0.",
+      },
+    ],
+    definitely: [
+      {
+        file: "south-park/definitely.jpg",
+        alt: "Barges and a tug passing the old South Park Bridge with its leaves raised, 1973",
+        credit: "Barges passing the old bridge, 1973. Doug Wilson / National Archives, public domain.",
+      },
+    ],
+  },
+};
+
+const FIRST_AVE: Bridge = {
+  id: "first-ave",
+  preview: { file: "og-first-ave.jpg", alt: "The First Avenue South Bridge raised behind a small boat on the Duwamish" },
+  name: "First Avenue South",
+  short: "1st Ave S",
+  path: "/first-ave",
+  logName: "1st Ave South",
+  point: { lat: 47.5422, lng: -122.3345 },
+  // Ships of 5,000 tons and up still get openings during these hours.
+  rush: () => [
+    [6 * 60, 9 * 60],
+    [15 * 60, 18 * 60],
+  ],
+  rulesOnHoliday: CANAL_HOLIDAYS,
+  overnight: false,
+  cameras: [
+    {
+      id: "north",
+      label: "North end",
+      url: `${SDOT_CAMS}1_S_EMarg_NS.jpg`,
+      caption: "1st Ave S & E Marginal Way S, looking south toward the bridge.",
+      alt: "SDOT traffic camera at 1st Ave S and E Marginal Way S, looking south toward the First Avenue South Bridge",
+    },
+    {
+      id: "south",
+      label: "South end",
+      url: "https://images.wsdot.wa.gov/nw/099vc02671.jpg",
+      caption: "SR 99 at W Marginal Way (WSDOT), looking north.",
+      alt: "WSDOT traffic camera on SR 99 at W Marginal Way, looking north toward the First Avenue South Bridge",
+    },
+  ],
+  photos: {
+    "definitely-not": [
+      {
+        file: "first-ave/definitely-not.jpg",
+        alt: "The mayor and governor shaking hands at the bridge's opening ceremony, with a crowd and two dogs, 1956",
+        credit: "Opening day, September 22, 1956. Public domain.",
+      },
+    ],
+    nope: [
+      {
+        file: "first-ave/nope.jpg",
+        alt: "Looking across the First Avenue South Bridge toward downtown Seattle",
+        credit: "Looking toward downtown. Joe Mabel, CC BY-SA 3.0.",
+      },
+    ],
+    "probably-not": [
+      {
+        file: "first-ave/probably-not.jpg",
+        alt: "Aerial view of the First Avenue South Bridge over the Duwamish",
+        credit: "From the air. Joe Mabel, CC BY-SA 3.0.",
+      },
+    ],
+    maybe: [
+      {
+        file: "first-ave/maybe.jpg",
+        alt: "The First Avenue South Bridge and its control tower from South River Street",
+        credit: "From South River Street. Joe Mabel, CC BY-SA 4.0.",
+      },
+    ],
+    probably: [
+      {
+        file: "first-ave/probably.jpg",
+        alt: "The Duwamish River looking toward the First Avenue South Bridge in the distance",
+        credit: "Downriver from the South Park Bridge. Joe Mabel, CC BY-SA 3.0.",
+      },
+    ],
+    yep: [
+      {
+        file: "first-ave/up-2009.jpg",
+        alt: "The First Avenue South Bridge raised behind people riding a small boat on the Duwamish, 2009",
+        credit: "Raised, seen from a Duwamish boat tour, 2009. U.S. EPA, public domain.",
+      },
+    ],
+    definitely: [
+      {
+        file: "first-ave/up-2009.jpg",
+        alt: "The First Avenue South Bridge raised behind people riding a small boat on the Duwamish, 2009",
+        credit: "Raised, seen from a Duwamish boat tour, 2009. U.S. EPA, public domain.",
+      },
+    ],
+  },
+};
+
+const SPOKANE_ST: Bridge = {
+  id: "spokane-st",
+  preview: { file: "og-spokane-st.jpg", alt: "The Spokane Street swing bridge turned open, leaving a gap at the end of the road" },
+  name: "Spokane Street",
+  short: "Spokane St",
+  path: "/spokane-st",
+  logName: "Lower Spokane St",
+  point: { lat: 47.5714, lng: -122.3535 },
+  rush: () => [],
+  rulesOnHoliday: () => false,
+  overnight: true,
+  cameras: [
+    {
+      id: "east",
+      label: "East end",
+      url: `${SDOT_CAMS}11_SW_Spokane_2.jpg`,
+      caption: "11th Ave SW & SW Spokane St, looking along the low bridge.",
+      alt: "SDOT traffic camera at 11th Ave SW and SW Spokane St, looking along the Spokane Street low bridge",
+    },
+  ],
+  photos: {
+    "definitely-not": [
+      {
+        file: "spokane-st/definitely-not.jpg",
+        alt: "Two early trucks on the West Spokane Street swing bridge, 1918",
+        credit: "Trucks on an earlier swing bridge here, 1918. Public domain.",
+      },
+    ],
+    nope: [
+      {
+        file: "spokane-st/nope.jpg",
+        alt: "A streetcar on the Spokane Street bascule bridge, 1928",
+        credit: `A streetcar on the bascule bridge here before the swing bridge, 1928. ${SMA}`,
+      },
+    ],
+    "probably-not": [
+      {
+        file: "spokane-st/probably-not.jpg",
+        alt: "The Spokane Street swing bridge closed, seen from the east under the high bridge, 2003",
+        credit: "From the east, 2003. Robert Ashworth, CC BY 2.0.",
+      },
+    ],
+    maybe: [
+      {
+        file: "spokane-st/maybe.jpg",
+        alt: "A 'Gap in bridge' warning sign on the Spokane Street low bridge",
+        credit: "The sign that says it all. Robert Ashworth, CC BY 2.0.",
+      },
+    ],
+    probably: [
+      {
+        file: "spokane-st/probably.jpg",
+        alt: "Looking down at the base of the swing span while it's turned, 2017",
+        credit: "The pivot while the span is turned. Robert Ashworth, CC BY 2.0.",
+      },
+      {
+        file: "spokane-st/probably-2.jpg",
+        alt: "The drawbridge gears of an earlier West Spokane Street bridge, 1924",
+        credit: "Gears of an earlier bridge here, August 22, 1924. James P. Lee, public domain.",
+      },
+    ],
+    yep: [
+      {
+        file: "spokane-st/yep.jpg",
+        alt: "The road ending at the gap where the swing span has turned away, 2017",
+        credit: "The span turned away, 2017. Robert Ashworth, CC BY 2.0.",
+      },
+    ],
+    definitely: [
+      {
+        file: "spokane-st/definitely.jpg",
+        alt: "Open water where the road should be, with the swing span turned, 2009",
+        credit: "The swing span turned, 2009. Adam Foster, CC BY 2.0.",
+      },
+    ],
+  },
+};
+
+export const BRIDGES: Bridge[] = [FREMONT, BALLARD, UNIVERSITY, MONTLAKE, SOUTH_PARK, FIRST_AVE, SPOKANE_ST];
 
 /** The page with every bridge at a glance. */
 export const OVERVIEW_PATH = "/all";

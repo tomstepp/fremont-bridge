@@ -397,7 +397,7 @@ h2 {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.35rem 0.75rem;
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
 }
 
 .cam-pick .note {
@@ -532,25 +532,40 @@ button[aria-pressed="true"] {
     align-items: start;
   }
 
+  /* The question with the bridge tabs at its right, then the answer and its chance. */
   .hero {
     grid-area: hero;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "question tabs"
+      "answer odds";
     align-items: baseline;
     column-gap: 1.5rem;
   }
 
   .hero h1 {
-    flex-basis: 100%;
+    grid-area: question;
+  }
+
+  .answer {
+    grid-area: answer;
   }
 
   .odds {
-    margin-bottom: 0.75rem;
+    grid-area: odds;
+    margin-bottom: 0.6rem;
   }
 
-  /* Tabs sit at the right end of the answer's row. */
   .bridge-tabs {
-    margin: 0 0 0.75rem auto;
+    grid-area: tabs;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    margin: 0;
+  }
+
+  .bridge-tabs a {
+    padding: 0.2rem 0.5rem;
   }
 
   .photo {
@@ -595,6 +610,22 @@ button[aria-pressed="true"] {
 
   .ov-word {
     font-size: 2.1rem;
+  }
+}
+
+/* Seven bridges: three cards across on wide screens keeps them on one screen. */
+@media (min-width: 1200px) {
+  .overview-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ov-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 11rem);
+    padding: 0.85rem;
+  }
+
+  .ov-word {
+    font-size: 1.6rem;
   }
 }
 

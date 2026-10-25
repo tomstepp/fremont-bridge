@@ -150,7 +150,7 @@ function renderChart(shares: number[], stats: Season["stats"] | undefined, when:
 
   const shaded = [
     bridge.overnight && "overnight, appointment only",
-    weekdayRules(bridge, when) && "rush hours, large ships only",
+    weekdayRules(bridge, when) && bridge.rush(when.day).length > 0 && "rush hours, large ships only",
   ].filter(Boolean);
   const basis = !stats
     ? "Year-round average for now; recent weeks still loading."
