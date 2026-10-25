@@ -1,7 +1,7 @@
 import { BRIDGES, bridgeForPath, isOvernight, isRushHour, isRushMinute, type Camera, type Photo } from "./bridges";
 import { guess, pct, type CameraReport, type Level, type Traffic } from "./guess";
 import { season, type Season } from "./season";
-import { fetchHistory, fetchTraffic, type History } from "./sources";
+import { cachedRecent, cachedYear, fetchRecent, fetchTraffic, fetchYear, type Recent, type YearShares } from "./sources";
 import {
   addDays,
   dayName,
@@ -31,6 +31,7 @@ const REPORT_MS = 5 * 60_000;
 const CAMERA_TIMEOUT_MS = 15_000;
 // No logged opening for this long means SDOT's log has stopped for the bridge.
 const STALE_LOG_DAYS = 7;
+const LOADING_LOG = "Loading SDOT's opening log…";
 
 // The page's bridge comes from its path: /ballard/, /university/, … or / for Fremont.
 const bridge = bridgeForPath(location.pathname);
@@ -47,20 +48,31 @@ const iconFor = (up: boolean) =>
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
-let history: History | undefined;
+// SDOT's log arrives in two parts (see sources.ts); the page shows what it has.
+let year: YearShares | undefined;
+let recent: Recent | undefined;
 let traffic: Traffic | undefined;
 let report: { what: CameraReport; at: number } | undefined;
 
 function render() {
-  if (!history) return;
+  if (!year && !recent) return;
   const now = new Date();
   const dow = seattleDow(now);
   const hour = seattleHour(now);
   const month = seattleMonth(now);
   const camera = report && Date.now() - report.at < REPORT_MS ? report.what : undefined;
-  const year = history.shares[dow];
-  const s = season(history.seasonOpenings, history.seasonDays, year);
-  const g = guess({ baseRate: s.shares[hour], yearRate: year[hour], dayLabel: `${dayName(dow)}s`, traffic, camera });
+  const yearDow = year?.[dow];
+  // Until today's part arrives, the year-round average stands in for the season.
+  const s: Season | undefined = recent && season(recent.seasonOpenings, recent.seasonDays, yearDow);
+  const shares = s?.shares ?? yearDow!;
+  const g = guess({
+    baseRate: shares[hour],
+    yearRate: s && yearDow?.[hour],
+    seasonal: Boolean(s),
+    dayLabel: `${dayName(dow)}s`,
+    traffic,
+    camera,
+  });
 
   // The answer is a live region; only touch it on a real change so screen
   // readers don't re-announce it every minute.
@@ -92,9 +104,11 @@ function render() {
 
   // Every bridge opens most days, so a week with nothing logged means SDOT's
   // sensor is down (University's went quiet in 2026), not a quiet bridge.
-  const last = history.lastOpening;
+  const last = recent?.lastOpening;
   const stale = !last || last.at.slice(0, 10) < addDays(seattleDate(now), -STALE_LOG_DAYS);
-  $("last").textContent = !last
+  $("last").textContent = !recent
+    ? LOADING_LOG
+    : !last
     ? "SDOT hasn't logged any openings for this bridge."
     : stale
       ? `SDOT hasn't logged an opening here since ${formatFloating(last.at)}; its sensor may be down.`
@@ -103,22 +117,23 @@ function render() {
   for (const b of document.querySelectorAll<HTMLButtonElement>("[data-report]"))
     b.setAttribute("aria-pressed", String(b.dataset.report === camera));
 
-  renderChart(s, dow, hour, month);
+  renderChart(shares, s?.stats, dow, hour, month);
 }
 
-function renderChart({ shares, stats }: Season, dow: number, hour: number, month: number) {
+function renderChart(shares: number[], stats: Season["stats"] | undefined, dow: number, hour: number, month: number) {
   const max = Math.max(...shares, 0.01);
   const peak = shares.indexOf(Math.max(...shares));
   const days = `${dayName(dow)}s`;
   $("chart-title").textContent = `${days} this time of year`;
 
   // A sensor outage leaves a day blank; say so rather than count it as quiet.
-  const missing = 9 - stats.recentDays - stats.lastYearDays;
+  const missing = stats ? 9 - stats.recentDays - stats.lastYearDays : 0;
+  const value = (v: string) => (stats ? v : "…");
   $("chart-stats").replaceChildren(
     ...[
-      [`Last 4 ${days}`, `${stats.recentPerDay}/day`, "Openings a day, last four weeks"],
-      ["Last year", `${stats.lastYearPerDay}/day`, "Openings a day, same weeks last year"],
-      ["Duration", `${stats.medianMinutes} min`, "Median opening length"],
+      [`Last 4 ${days}`, value(`${stats?.recentPerDay}/day`), "Openings a day, last four weeks"],
+      ["Last year", value(`${stats?.lastYearPerDay}/day`), "Openings a day, same weeks last year"],
+      ["Duration", value(`${stats?.medianMinutes} min`), "Median opening length"],
       ["Busiest", hourName(peak), "Hour the bridge is up most"],
     ].map(([term, value, title]) => {
       const pair = document.createElement("div");
@@ -134,9 +149,12 @@ function renderChart({ shares, stats }: Season, dow: number, hour: number, month
 
   const weekday = dow >= 1 && dow <= 5;
   const shaded = [bridge.overnight && "overnight, appointment only", weekday && "rush hours, large ships only"].filter(Boolean);
-  $("chart-note").textContent =
-    `${9 - missing} days${missing ? ` (${missing} not logged)` : ""} blended with the year-round average.` +
-    (shaded.length ? ` Shaded: ${shaded.join("; ")}.` : "");
+  const basis = !stats
+    ? "Year-round average for now; recent weeks still loading."
+    : !year
+      ? `${9 - missing} days${missing ? ` (${missing} not logged)` : ""}; year-round average still loading.`
+      : `${9 - missing} days${missing ? ` (${missing} not logged)` : ""} blended with the year-round average.`;
+  $("chart-note").textContent = basis + (shaded.length ? ` Shaded: ${shaded.join("; ")}.` : "");
   $("chart").setAttribute(
     "aria-label",
     `Share of each hour the bridge is up on ${days} this time of year; busiest is ${hourLabel(peak)}, about ${pct(max)}.`,
@@ -291,15 +309,25 @@ async function start() {
   // finished loading so it can't hold up the browser's loading indicator.
   if (document.readyState === "complete") refreshCamera();
   else window.addEventListener("load", refreshCamera, { once: true });
-  try {
-    [history] = await Promise.all([fetchHistory(bridge, seattleDate()), refreshTraffic()]);
-  } catch (err) {
-    console.error(err);
+  // Show whatever this browser already has right away, then fill in each part
+  // of SDOT's log, and traffic, as it arrives.
+  const today = seattleDate();
+  const cached = cachedYear(bridge, today);
+  year = cached?.shares;
+  recent = cachedRecent(bridge, today);
+  render();
+  const loads = [
+    cached?.fresh ? undefined : fetchYear(bridge, today).then((v) => (year = v)),
+    recent ? undefined : fetchRecent(bridge, today).then((v) => (recent = v)),
+    refreshTraffic(),
+  ].map((p) => p?.then(render));
+  const results = await Promise.allSettled(loads);
+  for (const r of results) if (r.status === "rejected") console.error(r.reason);
+  if (!year && !recent) {
     $("answer").textContent = "No idea.";
     $("odds").textContent = "Couldn't reach SDOT's bridge log. Try again in a bit.";
-    return;
+    $("last").textContent = "";
   }
-  render();
   setInterval(tick, REFRESH_MS);
   document.addEventListener("visibilitychange", tick);
 }

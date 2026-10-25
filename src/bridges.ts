@@ -1,6 +1,6 @@
 // Everything that differs between bridges: SDOT's name for it, where it is,
 // its opening rules, cameras and photos. Each bridge gets a page at its path.
-import type { Level } from "./guess";
+import type { Level } from "./guess.ts";
 
 export interface Camera {
   id: string;

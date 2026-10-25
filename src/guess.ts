@@ -20,6 +20,8 @@ export interface Signals {
   yearRate?: number;
   /** "Sundays", for the explanation. */
   dayLabel?: string;
+  /** False when baseRate is the year-round average because the seasonal days haven't loaded. */
+  seasonal?: boolean;
   traffic?: Traffic;
   camera?: CameraReport;
 }
@@ -89,7 +91,12 @@ export function guess(s: Signals): Guess {
   const days = s.dayLabel ?? "this weekday";
   const year = s.yearRate === undefined ? "" : ` (${pct(s.yearRate)} year-round)`;
   const factors: Factor[] = [
-    { label: `Up about ${pct(s.baseRate)} of this hour on ${days} this time of year${year}` },
+    {
+      label:
+        s.seasonal === false
+          ? `Up about ${pct(s.baseRate)} of this hour on ${days} year-round`
+          : `Up about ${pct(s.baseRate)} of this hour on ${days} this time of year${year}`,
+    },
   ];
   let odds = base / (1 - base);
 

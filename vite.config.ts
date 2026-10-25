@@ -1,5 +1,5 @@
 import { defineConfig, type Plugin } from "vite";
-import { BRIDGES } from "./src/bridges";
+import { BRIDGES } from "./src/bridges.ts";
 
 const SITE = "https://fremontbridge.com";
 

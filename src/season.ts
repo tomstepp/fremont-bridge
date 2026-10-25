@@ -93,7 +93,8 @@ export interface Season {
   stats: SeasonStats;
 }
 
-export function season(openings: Opening[], days: { recent: string[]; lastYear: string[] }, year: number[]): Season {
+/** `year` may be missing while the year-round averages are still loading; the season then stands alone. */
+export function season(openings: Opening[], days: { recent: string[]; lastYear: string[] }, year?: number[]): Season {
   const logged = new Set(openings.map((o) => o.day));
   const inWindow = (list: string[]) => openings.filter((o) => list.includes(o.day));
   const recent = inWindow(days.recent);
@@ -106,7 +107,7 @@ export function season(openings: Opening[], days: { recent: string[]; lastYear: 
   const durations = [...recent, ...lastYear].map((o) => o.minutes).sort((a, b) => a - b);
   const perDay = (n: number, d: number) => (d ? Math.round((n / d) * 10) / 10 : 0);
   return {
-    shares: blend(raw, year, total),
+    shares: year ? blend(raw, year, total) : raw,
     stats: {
       recentDays,
       lastYearDays,
